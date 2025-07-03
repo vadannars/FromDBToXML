@@ -5,19 +5,54 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *---------------------------------------------------------------------------------------*/
 /*
+FÖR ATT TESTKÖRA:
+i terminalen:
+apache2ctl start
+
 PROJEKTETS DELMÅL:
 
 * Skapa testmiljö i codespaces - KLART
 * Skapa XML - KLART
 * Hur loopa igenom apisvar?
+	Verkar ej behövas. decodeJson skapar en array direkt. Ska loopa igenom arrayen enligt nedan.
 * Hur loopa skapandet av xml?
+	// Sample JSON string
+	$json = '{"name": "John", "age": 30, "city": "Göteborg"}';
+
+	// Decode JSON into an associative array
+	$array = json_decode($json, true);
+
+	// Function to convert array to XML
+	function arrayToXml($data, &$xmlData) {
+		foreach ($data as $key => $value) {
+			// Handle numeric keys
+			if (is_numeric($key)) {
+				$key = "item$key";
+			}
+			if (is_array($value)) {
+				$subnode = $xmlData->addChild($key);
+				arrayToXml($value, $subnode);
+			} else {
+				$xmlData->addChild($key, htmlspecialchars($value));
+			}
+		}
+	}
+
+	// Create a new XML object
+	$xmlData = new SimpleXMLElement('<?xml version="1.0"?><root></root>');
+
+	// Convert array to XML
+	arrayToXml($array, $xmlData);
+
+	// Output XML
+	echo $xmlData->asXML();
 * Hur ta parametrar?
 	// URL: http://example.com?name=Alice
 	$name = $_GET['name'] ?? 'Guest'; // Default to 'Guest' if 'name' is not set
 	echo "Hello, " . htmlspecialchars($name) . "!"; // Output: Hello, Alice!
 
 * Hur kontakta API?
-	* Kodmässigt php
+	* Kodmässigt php - PÅ GOD VÄG
 		
 		require 'vendor/autoload.php';
 
@@ -25,7 +60,7 @@ PROJEKTETS DELMÅL:
 
 		$client = new Client();
 		$response = $client->request('GET', 'https://api.example.com/data', [
-			'query' => ['param1' => 'value1', 'param2' => 'value2']
+			'query' => ['param1' => 'value1', 'param2' => 'value2'] -> FORTSÄTT MED PARAMETRAR
 		]);
 
 		$data = json_decode($response->getBody(), true); // Decode JSON response
@@ -52,12 +87,28 @@ $xml->asXML('products.xml')
 require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
-$client = new Client();
 
-function callAPI() {
+$APIresponse = callAPIwithGET('GET', 'https://petstore.swagger.io/v2/store/inventory');
+$responseData = decodeJSONResponse($APIresponse);
+printJSONdata($responseData);
 
-
+function callAPIwithGET($method, $apiAdress) {
+	$client = new Client();
+	$response = $client->request($method, $apiAdress, [
+			'query' => ['param1' => 'value1', 'param2' => 'value2']
+		]);
+	return$response;
 }
+
+function decodeJSONResponse($APIresponse){
+	$responseData = json_decode($APIresponse->getBody(), true);
+	return$responseData;
+}
+
+function printJSONdata ($data){
+	print_r($data);
+}
+
 
 function sayHello($name) {
 	echo "Hello $name!";
