@@ -88,11 +88,16 @@ require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
 
-$APIresponse = callAPIwithGET('GET', 'https://petstore.swagger.io/v2/store/inventory');
+$xmlString = '<?xml version="1.0" encoding="UTF-8"?><status></status>';
+$responseAsXML = new SimpleXMLElement($xmlString);
+
+$APIresponse = callAPI('GET', 'https://petstore.swagger.io/v2/store/inventory');
 $responseData = decodeJSONResponse($APIresponse);
 printJSONdata($responseData);
+arrayToXml($responseData,$responseAsXML);
+$responseAsXML->asXML('loanstatus.xml');
 
-function callAPIwithGET($method, $apiAdress) {
+function callAPI($method, $apiAdress) {
 	$client = new Client();
 	$response = $client->request($method, $apiAdress, [
 			'query' => ['param1' => 'value1', 'param2' => 'value2']
@@ -109,24 +114,25 @@ function printJSONdata ($data){
 	print_r($data);
 }
 
+function arrayToXml($data, $xmlData) {
+	$libraryDescription = 'Exemplarstatus för böcker i Göteborgs Stadsbiblioteks katalog';
 
-function sayHello($name) {
-	echo "Hello $name!";
-}
+	if ($xmlData->getName() !== 'channel') {
+		$channel = $xmlData->addChild('channel');
+	} else {$channel = $xmlData;}
 
-?>
+	$channel->addChild('description', htmlspecialchars($libraryDescription));
+	$itemInfoNode = $channel->addChild('Item_information');
 
-<html>
-	<head>
-		<title>Visual Studio Code Remote :: PHP</title>
-	</head>
-	<body>
-		<?php 
-		
-		sayHello('remote world');
-			
-		phpinfo(); 
-			
-		?>
-	</body>
-</html>
+	foreach ($data as $key => $value) {
+		if (is_numeric($key)) {
+			$key = "item$key";
+		}
+		if (is_array($value)) {
+			$subnode = $itemInfoNode->addChild($key);
+			arrayToXml($value, $subnode);
+		} else {
+			$itemInfoNode->addChild($key, htmlspecialchars($value));
+		}
+	}
+	}
