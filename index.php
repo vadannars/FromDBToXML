@@ -1,10 +1,15 @@
 <?php
 
-/*----------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See LICENSE in the project root for license information.
- *---------------------------------------------------------------------------------------*/
 /*
+marc: https://www.oclc.org/bibformats/en/0xx.html
+bibframe: https://www.loc.gov/bibframe/
+
+Adress till bibliotekets api:
+gotlib.goteborg.se/iii/sierra-api/
+
+API Key:
+nxp4yHPM46n/15Ut7dv4zY1QUTkp
+
 FÖR ATT TESTKÖRA:
 i terminalen:
 apache2ctl start
@@ -90,8 +95,10 @@ use GuzzleHttp\Client;
 
 $xmlString = '<?xml version="1.0" encoding="UTF-8"?><status></status>';
 $responseAsXML = new SimpleXMLElement($xmlString);
+$callMethod = 'GET';
+$apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
 
-$APIresponse = callAPI('GET', 'https://petstore.swagger.io/v2/store/inventory');
+$APIresponse = callAPI($callMethod, $apiAdress);
 $responseData = decodeJSONResponse($APIresponse);
 printJSONdata($responseData);
 arrayToXml($responseData,$responseAsXML);
