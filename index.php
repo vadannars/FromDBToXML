@@ -93,21 +93,44 @@ require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
 
+$apiAuth = 'Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==';
+$headers = ['Authorization' => $apiAuth];
+$parameters = [	'limit' => '5',
+				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
+				'cratedDate' => '2025-05-05',
+				'deleted' => 'false'];
+
 $xmlString = '<?xml version="1.0" encoding="UTF-8"?><status></status>';
 $responseAsXML = new SimpleXMLElement($xmlString);
 $callMethod = 'GET';
 $apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
 
-$APIresponse = callAPI($callMethod, $apiAdress);
-$responseData = decodeJSONResponse($APIresponse);
-printJSONdata($responseData);
-arrayToXml($responseData,$responseAsXML);
-$responseAsXML->asXML('loanstatus.xml');
+//$apiToken = callAPI('POST','https://gotlib.goteborg.se/iii/sierra-api/v6/token',[], $headers);
+//$APIresponse = callAPI($callMethod, $apiAdress, $parameters =[], $headers = []);
+//$responseData = decodeJSONResponse($APIresponse);
+//$tokenResponse = decodeJSONResponse($apiToken);
+//printJSONdata($responseData);
+//printJSONdata($tokenResponse);
+//$token = getTokenFromArray($tokenResponse);
+//echo $token;
+echo 'test'; // FUNGERAR, det är något med resten av koden som inte vill (lol).
+//arrayToXml($responseData,$responseAsXML);
+//$responseAsXML->asXML('loanstatus.xml');
 
-function callAPI($method, $apiAdress) {
+function getTokenFromArray($tokenResponse) {
+	foreach ($tokenResponse as $key => $value) {
+		if ($key == 'access_token') {
+			return $value;
+		}
+	}
+}
+
+function callAPI($method, $apiAdress, $queryParameters, $headers) {
 	$client = new Client();
 	$response = $client->request($method, $apiAdress, [
-			'query' => ['param1' => 'value1', 'param2' => 'value2']
+			'query' => $queryParameters, [
+			'headers' => $headers
+			]
 		]);
 	return$response;
 }
