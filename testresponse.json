@@ -1,0 +1,79 @@
+{
+  "total": 5,
+  "start": 0,
+  "entries": [
+    {
+      "id": "2600306",
+      "title": "Samling kring Rosenblom : 75 visor",
+      "author": "Olrog, Ulf Peder, 1919-1972 aut https://libris.kb.se/pm1353s72ksczl1#it",
+      "locations": [
+        {
+          "code": "sb",
+          "name": "Stadsbiblioteket"
+        }
+      ],
+      "callNumber": "782.42",
+      "items": [
+        "https://gotlib.goteborg.se/iii/sierra-api/v6/items/6327867"
+      ]
+    },
+    {
+      "id": "2600307",
+      "title": "143",
+      "author": "Perry, Katy sng mus",
+      "locations": [
+        {
+          "code": "ma",
+          "name": "Majorna"
+        },
+        {
+          "code": "po",
+          "name": "Pool"
+        }
+      ],
+      "callNumber": "Pop och rock",
+      "items": [
+        "https://gotlib.goteborg.se/iii/sierra-api/v6/items/6327575"
+      ]
+    },
+    {
+      "id": "2600309",
+      "isbn": "9789130140138",
+      "title": "The way I used to be",
+      "author": "Smith, Amber aut",
+      "locations": [
+        {
+          "code": "sbe",
+          "name": "E-media(Elektronisk åtkomst)"
+        }
+      ],
+      "items": []
+    },
+    {
+      "id": "2600310",
+      "isbn": "9789130143474",
+      "title": "Framtidslöftet : historien om hur internet förändrade Sverige",
+      "author": "Lindstedt, Urban, civilekonom, 1967- aut https://libris.kb.se/zw9dhhbh1wxbsk4#it",
+      "locations": [
+        {
+          "code": "sbe",
+          "name": "E-media(Elektronisk åtkomst)"
+        }
+      ],
+      "items": []
+    },
+    {
+      "id": "2600312",
+      "isbn": "9789130139774",
+      "title": "Intersektionalitet : kritiska reflektioner över (o)jämlikhetens landskap",
+      "author": "De los Reyes, Paulina, 1955- aut https://libris.kb.se/b8nqrpqv4ctxmxp#it",
+      "locations": [
+        {
+          "code": "sbe",
+          "name": "E-media(Elektronisk åtkomst)"
+        }
+      ],
+      "items": []
+    }
+  ]
+}

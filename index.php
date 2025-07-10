@@ -44,7 +44,7 @@ PROJEKTETS DELMÅL:
 	}
 
 	// Create a new XML object
-	$xmlData = new SimpleXMLElement('<?xml version="1.0"?><root></root>');
+	$xmlData = new SimpleXMLElement('<?xml version="1.0"><root></root>');
 
 	// Convert array to XML
 	arrayToXml($array, $xmlData);
@@ -79,7 +79,7 @@ https://petstore.swagger.io/
 https://gorest.co.in/
 
 Samplekod för att generera en xml:
-$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><products></products>');
+$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"><products></products>');
 
 $product = $xml->addChild('product');
 $product->addChild('name','Product 1');
@@ -89,21 +89,21 @@ $xml->asXML('products.xml')
 
 */
 
-require 'vendor/autoload.php';
+//require 'vendor/autoload.php';
 
-use GuzzleHttp\Client;
+//use GuzzleHttp\Client;
 
-$apiAuth = 'Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==';
-$headers = ['Authorization' => $apiAuth];
-$parameters = [	'limit' => '5',
-				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
-				'cratedDate' => '2025-05-05',
-				'deleted' => 'false'];
+// $apiAuth = 'Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==';
+// $headers = ['Authorization' => $apiAuth];
+// $parameters = [	'limit' => '5',
+// 				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
+// 				'cratedDate' => '2025-05-05',
+// 				'deleted' => 'false'];
 
-$xmlString = '<?xml version="1.0" encoding="UTF-8"?><status></status>';
-$responseAsXML = new SimpleXMLElement($xmlString);
-$callMethod = 'GET';
-$apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
+// $xmlString = '<?xml version="1.0" encoding="UTF-8"><status></status>';
+// $responseAsXML = new SimpleXMLElement($xmlString);
+// $callMethod = 'GET';
+// $apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
 
 //$apiToken = callAPI('POST','https://gotlib.goteborg.se/iii/sierra-api/v6/token',[], $headers);
 //$APIresponse = callAPI($callMethod, $apiAdress, $parameters =[], $headers = []);
@@ -113,56 +113,161 @@ $apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bi
 //printJSONdata($tokenResponse);
 //$token = getTokenFromArray($tokenResponse);
 //echo $token;
-echo 'test'; // FUNGERAR, det är något med resten av koden som inte vill (lol).
-//arrayToXml($responseData,$responseAsXML);
-//$responseAsXML->asXML('loanstatus.xml');
+// echo 'test'; // FUNGERAR, det är något med resten av koden som inte vill (lol).
+// //arrayToXml($responseData,$responseAsXML);
+// //$responseAsXML->asXML('loanstatus.xml');
 
-function getTokenFromArray($tokenResponse) {
-	foreach ($tokenResponse as $key => $value) {
-		if ($key == 'access_token') {
-			return $value;
-		}
+// function getTokenFromArray($tokenResponse) {
+// 	foreach ($tokenResponse as $key => $value) {
+// 		if ($key == 'access_token') {
+// 			return $value;
+// 		}
+// 	}
+// }
+
+// function callAPI($method, $apiAdress, $queryParameters, $headers) {
+// 	$client = new Client();
+// 	$response = $client->request($method, $apiAdress, [
+// 			'query' => $queryParameters, [
+// 			'headers' => $headers
+// 			]
+// 		]);
+// 	return$response;
+// }
+
+// function decodeJSONResponse($APIresponse){
+// 	$responseData = json_decode($APIresponse->getBody(), true);
+// 	return$responseData;
+// }
+
+// function printJSONdata ($data){
+// 	print_r($data);
+// }
+
+// function arrayToXml($data, $xmlData) {
+// 	$libraryDescription = 'Exemplarstatus för böcker i Göteborgs Stadsbiblioteks katalog';
+
+// 	if ($xmlData->getName() !== 'channel') {
+// 		$channel = $xmlData->addChild('channel');
+// 	} else {$channel = $xmlData;}
+
+// 	$channel->addChild('description', htmlspecialchars($libraryDescription));
+// 	$itemInfoNode = $channel->addChild('Item_information');
+
+// 	foreach ($data as $key => $value) {
+// 		if (is_numeric($key)) {
+// 			$key = "item$key";
+// 		}
+// 		if (is_array($value)) {
+// 			$subnode = $itemInfoNode->addChild($key);
+// 			arrayToXml($value, $subnode);
+// 		} else {
+// 			$itemInfoNode->addChild($key, htmlspecialchars($value));
+// 		}
+// 	}
+// }
+
+// === CHATGTPs LÖSNING ===
+
+
+// === KONFIGURATION ===
+$authUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/token';
+$dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
+
+// Autentiseringsuppgifter
+$clientKey = 'nxp4yHPM46n/15Ut7dv4zY1QUTkp';
+$clientSecret = 'IvoryLemon#169';
+
+
+// === GENERELL FUNKTION FÖR HTTP-ANROP ===
+function makeHttpRequest(string $url, string $method = 'GET', array $headers = [], $body = null): array {
+    $ch = curl_init($url);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+
+    if ($body !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    }
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return [
+        'status' => $statusCode,
+        'response' => $response,
+        'error' => $error
+    ];
+}
+
+
+// === POST-FUNKTION: HÄMTA TOKEN ===
+function authenticateAndGetToken($authUrl, $clientKey, $clientSecret): ?string {
+    $authString = base64_encode($clientKey . ':' . $clientSecret);
+    $headers = [
+        'Authorization' => 'Basic ' . $authString,
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+    ];
+
+    $result = makeHttpRequest($authUrl, 'POST', $headers);
+
+    echo "=== AUTH RESPONSE ===\n";
+    echo $result['response'] . "\n";
+
+    if ($result['status'] !== 200) {
+        echo "Autentisering misslyckades. Status: {$result['status']}\n";
+        echo "Fel: {$result['error']}\n";
+        return null;
+    }
+
+    $data = json_decode($result['response'], true);
+    return $data['token'] ?? null;
+}
+
+
+// === GET-FUNKTION: HÄMTA DATA ===
+function fetchDataWithToken($dataUrl, $token, array $params = []): void {
+    if (!empty($params)) {
+		$queryString = http_build_query($params);
+		$dataUrl .= (strpos($dataUrl, '?') === false ? '?' : '&') . $queryString;
 	}
+	
+	$headers = [
+        'Authorization' => 'Bearer ' . $token,
+        'Accept' => 'application/json'
+    ];
+
+    $result = makeHttpRequest($dataUrl, 'GET', $headers);
+
+    echo "=== DATA RESPONSE ===\n";
+    echo $result['response'] . "\n";
+
+    if ($result['status'] !== 200) {
+        echo "Datahämtning misslyckades. Status: {$result['status']}\n";
+        echo "Fel: {$result['error']}\n";
+        return;
+    }
+
+    // Vill du göra något mer med datan? Lägg till det här!
 }
 
-function callAPI($method, $apiAdress, $queryParameters, $headers) {
-	$client = new Client();
-	$response = $client->request($method, $apiAdress, [
-			'query' => $queryParameters, [
-			'headers' => $headers
-			]
-		]);
-	return$response;
+
+// === HUVUDFLÖDE ===
+
+$parameters = [	'limit' => '5',
+ 				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
+ 				'cratedDate' => '2025-05-05',
+ 				'deleted' => 'false'];
+$token = authenticateAndGetToken($authUrl, $clientKey, $clientSecret);
+
+if ($token) {
+    fetchDataWithToken($dataUrl, $token, $parameters);
+} else {
+    echo "Ingen token kunde hämtas. Avbryter.\n";
 }
-
-function decodeJSONResponse($APIresponse){
-	$responseData = json_decode($APIresponse->getBody(), true);
-	return$responseData;
-}
-
-function printJSONdata ($data){
-	print_r($data);
-}
-
-function arrayToXml($data, $xmlData) {
-	$libraryDescription = 'Exemplarstatus för böcker i Göteborgs Stadsbiblioteks katalog';
-
-	if ($xmlData->getName() !== 'channel') {
-		$channel = $xmlData->addChild('channel');
-	} else {$channel = $xmlData;}
-
-	$channel->addChild('description', htmlspecialchars($libraryDescription));
-	$itemInfoNode = $channel->addChild('Item_information');
-
-	foreach ($data as $key => $value) {
-		if (is_numeric($key)) {
-			$key = "item$key";
-		}
-		if (is_array($value)) {
-			$subnode = $itemInfoNode->addChild($key);
-			arrayToXml($value, $subnode);
-		} else {
-			$itemInfoNode->addChild($key, htmlspecialchars($value));
-		}
-	}
-	}
+?>
