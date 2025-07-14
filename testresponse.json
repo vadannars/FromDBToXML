@@ -3,77 +3,105 @@
   "start": 0,
   "entries": [
     {
-      "id": "2600306",
-      "title": "Samling kring Rosenblom : 75 visor",
-      "author": "Olrog, Ulf Peder, 1919-1972 aut https://libris.kb.se/pm1353s72ksczl1#it",
-      "locations": [
-        {
-          "code": "sb",
-          "name": "Stadsbiblioteket"
-        }
+      "id": "6339737",
+      "updatedDate": "2025-06-16T13:48:34Z",
+      "createdDate": "2025-06-12T14:47:00Z",
+      "deleted": false,
+      "bibIds": [
+        "2600568"
       ],
-      "callNumber": "782.42",
-      "items": [
-        "https://gotlib.goteborg.se/iii/sierra-api/v6/items/6327867"
-      ]
+      "location": {
+        "code": "asbcg",
+        "name": "Askim Barn/Unga Kapitelböcker 10-12 år"
+      },
+      "status": {
+        "code": "-",
+        "display": "CHECK SHELF"
+      },
+      "volumes": [],
+      "barcode": "45507699766E6",
+      "callNumber": "Kapitelbok Mellan"
     },
     {
-      "id": "2600307",
-      "title": "143",
-      "author": "Perry, Katy sng mus",
-      "locations": [
-        {
-          "code": "ma",
-          "name": "Majorna"
-        },
-        {
-          "code": "po",
-          "name": "Pool"
-        }
+      "id": "6339738",
+      "updatedDate": "2025-06-16T11:41:58Z",
+      "createdDate": "2025-06-12T14:47:00Z",
+      "deleted": false,
+      "bibIds": [
+        "2600568"
       ],
-      "callNumber": "Pop och rock",
-      "items": [
-        "https://gotlib.goteborg.se/iii/sierra-api/v6/items/6327575"
-      ]
+      "location": {
+        "code": "anbcg",
+        "name": "Angered Barn/Unga Kapitelböcker 10-12 år"
+      },
+      "status": {
+        "code": "-",
+        "display": "CHECK SHELF"
+      },
+      "volumes": [],
+      "barcode": "45507699758EE",
+      "callNumber": "Kapitelbok Mellan"
     },
     {
-      "id": "2600309",
-      "isbn": "9789130140138",
-      "title": "The way I used to be",
-      "author": "Smith, Amber aut",
-      "locations": [
-        {
-          "code": "sbe",
-          "name": "E-media(Elektronisk åtkomst)"
-        }
+      "id": "6339739",
+      "updatedDate": "2025-06-24T15:59:03Z",
+      "createdDate": "2025-06-12T14:47:00Z",
+      "deleted": false,
+      "bibIds": [
+        "2600568"
       ],
-      "items": []
+      "location": {
+        "code": "hlbcg",
+        "name": "Härlanda Barn/Unga Kapitelböcker 10-12 år"
+      },
+      "status": {
+        "code": "-",
+        "display": "CHECK SHELF",
+        "duedate": "2025-08-05T02:00:00Z"
+      },
+      "volumes": [],
+      "barcode": "45507699756BC",
+      "callNumber": "Kapitelbok Mellan"
     },
     {
-      "id": "2600310",
-      "isbn": "9789130143474",
-      "title": "Framtidslöftet : historien om hur internet förändrade Sverige",
-      "author": "Lindstedt, Urban, civilekonom, 1967- aut https://libris.kb.se/zw9dhhbh1wxbsk4#it",
-      "locations": [
-        {
-          "code": "sbe",
-          "name": "E-media(Elektronisk åtkomst)"
-        }
+      "id": "6344949",
+      "updatedDate": "2025-07-01T15:09:30Z",
+      "createdDate": "2025-06-26T14:00:00Z",
+      "deleted": false,
+      "bibIds": [
+        "2600569"
       ],
-      "items": []
+      "location": {
+        "code": "hlbpe",
+        "name": "Härlanda Barn/Unga Småbarnsböcker"
+      },
+      "status": {
+        "code": "-",
+        "display": "CHECK SHELF"
+      },
+      "volumes": [],
+      "barcode": "45507626085E8",
+      "callNumber": "Småbarnsbok"
     },
     {
-      "id": "2600312",
-      "isbn": "9789130139774",
-      "title": "Intersektionalitet : kritiska reflektioner över (o)jämlikhetens landskap",
-      "author": "De los Reyes, Paulina, 1955- aut https://libris.kb.se/b8nqrpqv4ctxmxp#it",
-      "locations": [
-        {
-          "code": "sbe",
-          "name": "E-media(Elektronisk åtkomst)"
-        }
+      "id": "6344950",
+      "updatedDate": "2025-06-27T08:27:16Z",
+      "createdDate": "2025-06-26T14:00:00Z",
+      "deleted": false,
+      "bibIds": [
+        "2600569"
       ],
-      "items": []
+      "location": {
+        "code": "b1bpe",
+        "name": "Buss Blå Barn/Unga Småbarnsböcker"
+      },
+      "status": {
+        "code": "-",
+        "display": "CHECK SHELF"
+      },
+      "volumes": [],
+      "barcode": "455076260867D",
+      "callNumber": "Småbarnsbok"
     }
   ]
 }

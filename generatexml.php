@@ -22,7 +22,7 @@ function generateXMLFromData(array $data): SimpleXMLElement {
     $itemInfoNode = $channel->addChild('Item_information');
     $counter = 1;
     foreach ($data as $item) {
-        $listItem = $itemInfoNode->addChild('Item'); // varje post blir ett <User>-element
+        $listItem = $itemInfoNode->addChild('Item');
         $listItem->addChild('Item_No', $counter++);
 
         foreach ($tagMap as $key => $tagName) {

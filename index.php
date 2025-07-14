@@ -172,7 +172,7 @@ $xml->asXML('products.xml')
 
 // === KONFIGURATION ===
 $authUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/token';
-$dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
+$dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/bibs';
 
 // Autentiseringsuppgifter
 $clientKey = 'nxp4yHPM46n/15Ut7dv4zY1QUTkp';
@@ -262,8 +262,10 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): void {
 $parameters = [	'limit' => '5',
  				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
  				'cratedDate' => '2025-05-05',
- 				'deleted' => 'false'];
-$token = authenticateAndGetToken($authUrl, $clientKey, $clientSecret);
+ 				'deleted' => 'false',
+                'suppressed' => 'false'];
+//$token = authenticateAndGetToken($authUrl, $clientKey, $clientSecret);
+$token = ' OEqPT2z77G85Hg9R9VEfq0GuOzqOO0Sf5PmFhwS3Kg77vyjSw6bb293YpVlkLFGB0VtD2Vhcs0lkhBSup13VszDllt8JTUycnOnIVoLANjGRG4XkQL2trnHfjELxYHEy';
 
 if ($token) {
     fetchDataWithToken($dataUrl, $token, $parameters);
