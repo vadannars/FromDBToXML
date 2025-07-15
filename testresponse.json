@@ -102,6 +102,26 @@
       "volumes": [],
       "barcode": "455076260867D",
       "callNumber": "Småbarnsbok"
+    },
+    {
+      "id": "6278801",
+      "updatedDate": "2025-07-12T09:40:49Z",
+      "createdDate": "2025-02-07T08:51:04Z",
+      "deleted": false,
+      "bibIds": [
+        "1836537"
+      ],
+      "location": {
+        "code": "sblti",
+        "name": "Stadsbiblioteket Entréplan Ljusgården"
+      },
+      "status": {
+        "code": "t",
+        "display": "IN TRANSIT"
+      },
+      "volumes": [],
+      "barcode": "7000140882",
+      "callNumber": "796.962 nr 36 2025"
     }
   ]
 }

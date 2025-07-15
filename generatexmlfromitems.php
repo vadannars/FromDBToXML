@@ -15,27 +15,84 @@ $itemInfo = $channel->addChild('Item_information');
 // Status enum-liknande mappning
 function mapStatus($display) {
     $map = [
-        'CHECK SHELF' => 'Tillgänglig',
-        'ON HOLDSHELF' => 'På hållhylla',
-        'IN TRANSIT' => 'På väg',
-        'CHECKED OUT' => 'Utlånad',
-        'MISSING' => 'Saknas',
-        'LOST' => 'Förlorad',
-        'IN PROCESS' => 'Under behandling',
+        '-' => '',
+        '!' => 'Reserverad',
+        'o' => 'Referens',
+        't' => 'På väg',
+        'm' => 'Saknas',
+        'l' => 'Ej tillgänglig',
+        'p' => 'På lagning',
+        'u' => 'Under arbete',
         'UNKNOWN' => 'Okänd status'
     ];
     return $map[$display] ?? 'Okänd status';
 }
 
+function getMappedValue($tagRule, $data) {
+    if (is_callable($tagRule)) {
+        return $tagRule($data);
+    }
+
+    if (is_string($tagRule)) {
+        return $data[$tagRule] ?? null;
+    }
+
+    if (is_array($tagRule) && isset($tagRule['path'])) {
+        $value = $data;
+        foreach ($tagRule['path'] as $key) {
+            if (!isset($value[$key])) {
+                return null;
+            }
+            $value = $value[$key];
+        }
+
+        if (isset($tagRule['map']) && $tagRule['map'] === 'status') {
+            return mapStatus($value);
+        }
+
+        return $value;
+    }
+
+    return null;
+}
+
+
 // Tag-mapp
+// $tagMap = [
+//     'Item_No' => 'counter',
+//     'Location' => ['path' => ['location', 'name']],
+//     'Call_No' => ['path' => ['callNumber']],
+//     'Status' => ['path' => ['status', 'display'], 'map' => 'status'],
+//     'Status_date' => ['path' => ['status', 'duedate']],
+//     'Status_Date_Description' => ['path' => ['status', 'display']],
+//     'Loan_Policy' => ['path' => ['location', 'name']],
+//     'UniqueItemId' => 'placeholder'
+// ];
 $tagMap = [
     'Item_No' => 'counter',
+
     'Location' => ['path' => ['location', 'name']],
+
     'Call_No' => ['path' => ['callNumber']],
-    'Status' => ['path' => ['status', 'display'], 'map' => 'status'],
+
+    'Status' => function ($data) {
+        if (($data['status']['display'] ?? null) === '-') {
+            return !empty($data['status']['duedate']) ? 'Utlånad' : 'Tillgänglig';
+        }
+        return mapStatus($data['status']['display'] ?? 'UNKNOWN');
+    },
+
     'Status_date' => ['path' => ['status', 'duedate']],
-    'Status_Date_Description' => ['path' => ['status', 'display']],
+
+    'Status_Date_Description' => function ($data) {
+        if (($data['status']['display'] ?? null) === '-' && !empty($data['status']['duedate'])) {
+            return 'ÅTER ';
+        }
+        return ''; // Eller null eller något annat fallbackvärde
+    },
+
     'Loan_Policy' => ['path' => ['location', 'name']],
+
     'UniqueItemId' => 'placeholder'
 ];
 
@@ -64,6 +121,11 @@ foreach ($data['entries'] as $entry) {
             continue;
         }
 
+        if (is_callable($info)) {
+            $value = $info($entry);
+            $xmlItem->addChild($tag, htmlspecialchars($value ?? ''));
+            continue;
+        }
         // Navigera i arrayen
         $value = $entry;
         foreach ($info['path'] as $key) {
