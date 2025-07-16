@@ -1,58 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <status>
-   <channel>
-       <description>Exemplarstatus för böcker i Göteborgs biblioteks katalog</description>
-       <Item_information>
-           <Item>
-               <Item_No>1</Item_No>
-               <Location>Askim Barn/Unga Kapitelböcker 10-12 år</Location>
-               <Call_No>Kapitelbok Mellan</Call_No>
-               <Status>Okänd status</Status>
-               <Status_date/>
-               <Status_Date_Description/>
-               <Loan_Policy>Askim Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
-               <UniqueItemId/>
-           </Item>
-           <Item>
-               <Item_No>2</Item_No>
-               <Location>Angered Barn/Unga Kapitelböcker 10-12 år</Location>
-               <Call_No>Kapitelbok Mellan</Call_No>
-               <Status>Okänd status</Status>
-               <Status_date/>
-               <Status_Date_Description/>
-               <Loan_Policy>Angered Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
-               <UniqueItemId/>
-           </Item>
-           <Item>
-               <Item_No>3</Item_No>
-               <Location>Härlanda Barn/Unga Kapitelböcker 10-12 år</Location>
-               <Call_No>Kapitelbok Mellan</Call_No>
-               <Status>Okänd status</Status>
-               <Status_date>2025-08-05T02:00:00Z</Status_date>
-               <Status_Date_Description/>
-               <Loan_Policy>Härlanda Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
-               <UniqueItemId/>
-           </Item>
-           <Item>
-               <Item_No>4</Item_No>
-               <Location>Härlanda Barn/Unga Småbarnsböcker</Location>
-               <Call_No>Småbarnsbok</Call_No>
-               <Status>Okänd status</Status>
-               <Status_date/>
-               <Status_Date_Description/>
-               <Loan_Policy>Härlanda Barn/Unga Småbarnsböcker</Loan_Policy>
-               <UniqueItemId/>
-           </Item>
-           <Item>
-               <Item_No>5</Item_No>
-               <Location>Buss Blå Barn/Unga Småbarnsböcker</Location>
-               <Call_No>Småbarnsbok</Call_No>
-               <Status>Okänd status</Status>
-               <Status_date/>
-               <Status_Date_Description/>
-               <Loan_Policy>Buss Blå Barn/Unga Småbarnsböcker</Loan_Policy>
-               <UniqueItemId/>
-           </Item>
-       </Item_information>
-   </channel>
+	<channel>
+		<description>Exemplarstatus för böcker i Göteborgs biblioteks katalog</description>
+		<Item_information>
+			<Item>
+				<Item_No>1</Item_No>
+				<Location>Askim Barn/Unga Kapitelböcker 10-12 år</Location>
+				<Call_No>Kapitelbok Mellan</Call_No>
+				<Status>Tillgänglig</Status>
+				<Status_date/>
+				<Status_Date_Description/>
+				<Loan_Policy>Askim Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+			<Item>
+				<Item_No>2</Item_No>
+				<Location>Angered Barn/Unga Kapitelböcker 10-12 år</Location>
+				<Call_No>Kapitelbok Mellan</Call_No>
+				<Status>Tillgänglig</Status>
+				<Status_date/>
+				<Status_Date_Description/>
+				<Loan_Policy>Angered Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+			<Item>
+				<Item_No>3</Item_No>
+				<Location>Härlanda Barn/Unga Kapitelböcker 10-12 år</Location>
+				<Call_No>Kapitelbok Mellan</Call_No>
+				<Status>Utlånad</Status>
+				<Status_date>2025-08-05T02:00:00Z</Status_date>
+				<Status_Date_Description>ÅTER </Status_Date_Description>
+				<Loan_Policy>Härlanda Barn/Unga Kapitelböcker 10-12 år</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+			<Item>
+				<Item_No>4</Item_No>
+				<Location>Härlanda Barn/Unga Småbarnsböcker</Location>
+				<Call_No>Småbarnsbok</Call_No>
+				<Status>Tillgänglig</Status>
+				<Status_date/>
+				<Status_Date_Description/>
+				<Loan_Policy>Härlanda Barn/Unga Småbarnsböcker</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+			<Item>
+				<Item_No>5</Item_No>
+				<Location>Buss Blå Barn/Unga Småbarnsböcker</Location>
+				<Call_No>Småbarnsbok</Call_No>
+				<Status>Tillgänglig</Status>
+				<Status_date/>
+				<Status_Date_Description/>
+				<Loan_Policy>Buss Blå Barn/Unga Småbarnsböcker</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+			<Item>
+				<Item_No>6</Item_No>
+				<Location>Stadsbiblioteket Entréplan Ljusgården</Location>
+				<Call_No>796.962 nr 36 2025</Call_No>
+				<Status>På väg</Status>
+				<Status_date/>
+				<Status_Date_Description/>
+				<Loan_Policy>Stadsbiblioteket Entréplan Ljusgården</Loan_Policy>
+				<UniqueItemId/>
+			</Item>
+		</Item_information>
+	</channel>
 </status>

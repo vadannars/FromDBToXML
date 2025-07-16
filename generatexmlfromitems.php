@@ -13,9 +13,10 @@ $channel->addChild('description', 'Exemplarstatus för böcker i Göteborgs bibl
 $itemInfo = $channel->addChild('Item_information');
 
 // Status enum-liknande mappning
-function mapStatus($display) {
+function mapStatus($code) {
+    $code = trim($code ?? '');
     $map = [
-        '-' => '',
+        '-' => 'Tillgänglig',
         '!' => 'Reserverad',
         'o' => 'Referens',
         't' => 'På väg',
@@ -25,7 +26,7 @@ function mapStatus($display) {
         'u' => 'Under arbete',
         'UNKNOWN' => 'Okänd status'
     ];
-    return $map[$display] ?? 'Okänd status';
+    return $map[$code] ?? 'Okänd status';
 }
 
 function getMappedValue($tagRule, $data) {
@@ -56,18 +57,6 @@ function getMappedValue($tagRule, $data) {
     return null;
 }
 
-
-// Tag-mapp
-// $tagMap = [
-//     'Item_No' => 'counter',
-//     'Location' => ['path' => ['location', 'name']],
-//     'Call_No' => ['path' => ['callNumber']],
-//     'Status' => ['path' => ['status', 'display'], 'map' => 'status'],
-//     'Status_date' => ['path' => ['status', 'duedate']],
-//     'Status_Date_Description' => ['path' => ['status', 'display']],
-//     'Loan_Policy' => ['path' => ['location', 'name']],
-//     'UniqueItemId' => 'placeholder'
-// ];
 $tagMap = [
     'Item_No' => 'counter',
 
@@ -76,19 +65,23 @@ $tagMap = [
     'Call_No' => ['path' => ['callNumber']],
 
     'Status' => function ($data) {
-        if (($data['status']['display'] ?? null) === '-') {
-            return !empty($data['status']['duedate']) ? 'Utlånad' : 'Tillgänglig';
+        error_log('STATUS code: "' . ($data['status']['code'] ?? 'NULL') . '"');
+        $code = trim($data['status']['code'] ?? '');
+        $duedate = $data['status']['duedate'] ?? '';
+
+        if ($code === '-') {
+            return !empty($duedate) ? 'Utlånad' : 'Tillgänglig';
         }
-        return mapStatus($data['status']['display'] ?? 'UNKNOWN');
+        return mapStatus($code?: 'UNKNOWN');
     },
 
     'Status_date' => ['path' => ['status', 'duedate']],
 
     'Status_Date_Description' => function ($data) {
-        if (($data['status']['display'] ?? null) === '-' && !empty($data['status']['duedate'])) {
+        if (($data['status']['code'] ?? null) === '-' && !empty($data['status']['duedate'])) {
             return 'ÅTER ';
         }
-        return ''; // Eller null eller något annat fallbackvärde
+        return ''; 
     },
 
     'Loan_Policy' => ['path' => ['location', 'name']],
