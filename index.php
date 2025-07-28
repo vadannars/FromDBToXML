@@ -186,44 +186,24 @@ require_once __DIR__ . '/generatexmlfromitems.php';
 $authUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/token';
 $dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/items';
 
+$identifiers = [
+    'Bib_ID' => $_GET['Bib_ID'] ?? null,
+    'ISBN'   => $_GET['ISBN'] ?? null,
+    'ONR'    => $_GET['ONR'] ?? null
+];
+
+
+if (!$identifiers) {
+    die("Ingen parameter angiven i anropet.");
+}
+
+
 // Autentiseringsuppgifter
 $clientKey = 'nxp4yHPM46n/15Ut7dv4zY1QUTkp';
 $clientSecret = 'IvoryLemon#169';
 
 
 // === GENERELL FUNKTION FÖR HTTP-ANROP ===
-// function makeHttpRequest(string $url, string $method = 'GET', array $headers = [], $body = null, $userpwd = null): array {
-//     $ch = curl_init($url);
-
-//     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-
-//     if ($body !== null) {
-//         curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-//     }
-//     curl_setopt($ch, CURLOPT_USERPWD, "$userpwd");
-
-//     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-//     curl_setopt($ch, CURLOPT_HEADER, true);  // få med headers i responsen
-//     curl_setopt($ch, CURLOPT_VERBOSE, true); // för felsökning
-//     curl_setopt($ch, CURLINFO_HEADER_OUT, true); // få ut headers i info
-
-//     $response = curl_exec($ch);
-//     $error = curl_error($ch);
-//     $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-//     $headerSent = curl_getinfo($ch, CURLINFO_HEADER_OUT);
-
-//     curl_close($ch);
-
-//     return [
-//         'status' => $statusCode,
-//         'response' => $response,
-//         'error' => $error,
-//         'sent_headers' => $headerSent
-//     ];
-// }
-
 function makeHttpRequest(string $url, string $method = 'GET', array $headers = [], $body = null): array {
     $ch = curl_init();
 
@@ -321,6 +301,86 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
     // Vill du göra något mer med datan? Lägg till det här!
 }
 
+function getSierraBibIdsFromIdentifiers(array $identifiers, string $token): ?array {
+    $baseUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/query';
+    $limit = 10;
+    $offset = 0;
+
+    $fields = [
+        'Bib_ID' => ['marcTag' => '029', 'subfield' => 'a'],
+        'ISBN'   => ['marcTag' => '020', 'subfield' => 'a'],
+        'ONR'    => ['marcTag' => '035', 'subfield' => 'a']
+    ];
+
+    foreach ($fields as $key => $marc) {
+        if (empty($identifiers[$key])) continue;
+
+        // Bygg URL med limit och offset som query params
+        $url = $baseUrl . '?limit=' . $limit . '&offset=' . $offset;
+
+        $query = [
+            "target" => ["record" => ["type" => "bib"]],
+            "expr" => [
+                "op" => "equals",
+                "args" => [
+                    $marc,
+                    $identifiers[$key]
+                ]
+            ]
+        ];
+
+        $jsonQuery = json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        echo "=== SÖKER MED $key ===\n$jsonQuery\n";
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ];
+
+        $response = makeHttpRequest($url, 'POST', $headers, $jsonQuery);
+        echo "== RESPONSE FOR $key ==\n" . $response['response'] . "\n";
+
+        if ($response['status'] !== 200) {
+            echo "Sökning med $key misslyckades. Status: {$response['status']}\n";
+            continue;
+        }
+
+        $data = json_decode($response['response'], true);
+        if (!isset($data['entries']) || empty($data['entries'])) {
+            echo "Inga träffar med $key = {$identifiers[$key]}\n";
+            continue;
+        }
+
+        return array_map(function ($entry) {
+            return (int) basename($entry['link']);
+        }, $data['entries']);
+    }
+
+    echo "Ingen träff med Bib_ID, ISBN eller ONR\n";
+    echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
+    return null;
+}
+
+
+function fetchItemsForBibId(int $bibId, string $token): ?string {
+    $itemsUrl = "https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/$bibId/items";
+    $headers = [
+        'Authorization' => 'Bearer ' . $token,
+        'Accept' => 'application/json'
+    ];
+
+    $response = makeHttpRequest($itemsUrl, 'GET', $headers);
+
+    if ($response['status'] !== 200) {
+        echo "Kunde inte hämta items. Status: {$response['status']}\n";
+        return null;
+    }
+
+    return $response['response'];
+}
+
 
 // === HUVUDFLÖDE ===
 
@@ -332,14 +392,25 @@ $token = authenticateAndGetToken($authUrl, $clientKey, $clientSecret);
 //$token = ' OEqPT2z77G85Hg9R9VEfq0GuOzqOO0Sf5PmFhwS3Kg77vyjSw6bb293YpVlkLFGB0VtD2Vhcs0lkhBSup13VszDllt8JTUycnOnIVoLANjGRG4XkQL2trnHfjELxYHEy';
 
 if ($token) {
-    $jsonResponse = fetchDataWithToken($dataUrl, $token, $parameters);
-    if ($jsonResponse !== null) {
-        $dataArray = jsonToArray($jsonResponse);
-        generateXMLFromData($dataArray);
-    } else {
-        echo "Ingen data att bearbeta.\n";
+    $sierraBibIds = getSierraBibIdsFromIdentifiers($identifiers, $token);
+
+if (!$sierraBibIds) {
+    echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
+    exit;
+}
+
+foreach ($sierraBibIds as $sierraBibId) {
+    echo "Hämtar items för Sierra Bib_ID: $sierraBibId\n";
+    $itemsJson = fetchItemsForBibId($sierraBibId, $token);
+
+    if ($itemsJson !== null) {
+        $itemsArray = jsonToArray($itemsJson);
+        generateXMLFromData($itemsArray);
+        break; // Sluta efter första som har items
     }
+}
 } else {
     echo "Ingen token kunde hämtas. Avbryter.\n";
 }
+
 ?>
