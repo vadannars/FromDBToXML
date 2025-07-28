@@ -1,0 +1,14 @@
+{
+  "api_key": "nxp4yHPM46n/15Ut7dv4zY1QUTkp",
+  "api_secret": "IvoryLemon#169",
+  "api_base_url": "https://gotlib.goteborg.se/iii/sierra-api/v6",
+  "token_endpoint": "/token",
+  "query_endpoint": "/bibs/query",
+  "bibs_endpoint": "/bibs",
+  "items_endpoint": "/items",
+  "query_parameters": {
+    "offset": "0",
+    "limit": 10
+  },
+  "active": "true"
+}

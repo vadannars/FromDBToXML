@@ -3,9 +3,6 @@
 /*
 curl -X POST https://gotlib.goteborg.se/iii/sierra-api/v6/token -H "Authorization: Basic $(echo -n 'nxp4yHPM46n/15Ut7dv4zY1QUTkp:IvoryLemon#169' | base64)" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials"
 
-  $clientKey = 'nxp4yHPM46n/15Ut7dv4zY1QUTkp';
-$clientSecret = 'IvoryLemon#169';
-
 curl -X POST https://gotlib.goteborg.se/iii/sierra-api/v6/token -H "Authorization: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials"
 
 
@@ -15,9 +12,6 @@ bibframe: https://www.loc.gov/bibframe/
 
 Adress till bibliotekets api:
 gotlib.goteborg.se/iii/sierra-api/
-
-API Key:
-nxp4yHPM46n/15Ut7dv4zY1QUTkp
 
 FÖR ATT TESTKÖRA:
 i terminalen:
@@ -178,12 +172,30 @@ $xml->asXML('products.xml')
 
 // === CHATGTPs LÖSNING ===
 
+// Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=m5z29vlz3tvn423&ISBN=9789186745349
+
+// Felmeddelande som ges: Authorization header: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ== Body: grant_type=client_credentials === AUTH RESPONSE === {"access_token":"yCsqVeJfztktJelAo5I_1yznr8nniWW7MWcc0w39jY368i551ftbqXotKjJjPylNgrEdOCA_uki99AeyJc4ttQ_BqZNsqHdulxfXmOlirtzB8H9kdu8eN3EEw_eycb3i","token_type":"bearer","expires_in":3600} === SÖKER MED Bib_ID === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"029","subfield":"a"},"m5z29vlz3tvn423"]}} == RESPONSE FOR Bib_ID == {"code":121,"specificCode":0,"httpStatus":400,"name":"Bad Request : Invalid authorization scheme"} Sökning med Bib_ID misslyckades. Status: 400 === SÖKER MED ISBN === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"020","subfield":"a"},"9789186745349"]}} == RESPONSE FOR ISBN == {"code":121,"specificCode":0,"httpStatus":400,"name":"Bad Request : Invalid authorization scheme"} Sökning med ISBN misslyckades. Status: 400 Ingen träff med Bib_ID, ISBN eller ONR Inget bibID hittades för angivna parametrar: {"Bib_ID":"m5z29vlz3tvn423","ISBN":"9789186745349","ONR":null} Inget bibID hittades för angivna parametrar: {"Bib_ID":"m5z29vlz3tvn423","ISBN":"9789186745349","ONR":null}
 
 // === KONFIGURATION ===
+$configPath = __DIR__ . '/config/config.json';
+$config = json_decode(file_get_contents($configPath),true);
+if (!$config) {
+    die("Misslyckades med att läsa konfigurationsfilen.");
+}
+
+if ($config['active'] != true) {
+    die("Active satt till false i konfigurationsfilen");
+}
+
 require_once __DIR__ . '/json_to_array.php';
 require_once __DIR__ . '/generatexmlfromitems.php';
 
-$authUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/token';
+$baseUrl = rtrim($config['api_base_url'], '/');
+$tokenEndpoint = rtrim($config['token_endpoint'], '/');
+$queryEndpoint = rtrim($config['token_endpoint'], '/');
+$bibsEndpoint = rtrim($config['bibs_endpoint'], '/');
+$itemsEndpoint = rtrim($config['items_endpoint'], '/');
+
 $dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/items';
 
 $identifiers = [
@@ -199,8 +211,8 @@ if (!$identifiers) {
 
 
 // Autentiseringsuppgifter
-$clientKey = 'nxp4yHPM46n/15Ut7dv4zY1QUTkp';
-$clientSecret = 'IvoryLemon#169';
+$clientKey = $config['api_key'];
+$clientSecret = $config['api_secret'];
 
 
 // === GENERELL FUNKTION FÖR HTTP-ANROP ===
@@ -301,8 +313,7 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
     // Vill du göra något mer med datan? Lägg till det här!
 }
 
-function getSierraBibIdsFromIdentifiers(array $identifiers, string $token): ?array {
-    $baseUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/query';
+function getSierraBibIdsFromIdentifiers(string $queryUrl, array $identifiers, string $token): ?array {
     $limit = 10;
     $offset = 0;
 
@@ -316,7 +327,7 @@ function getSierraBibIdsFromIdentifiers(array $identifiers, string $token): ?arr
         if (empty($identifiers[$key])) continue;
 
         // Bygg URL med limit och offset som query params
-        $url = $baseUrl . '?limit=' . $limit . '&offset=' . $offset;
+        $url = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
 
         $query = [
             "target" => ["record" => ["type" => "bib"]],
@@ -364,14 +375,13 @@ function getSierraBibIdsFromIdentifiers(array $identifiers, string $token): ?arr
 }
 
 
-function fetchItemsForBibId(int $bibId, string $token): ?string {
-    $itemsUrl = "https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/$bibId/items";
+function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?string {
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'Accept' => 'application/json'
     ];
 
-    $response = makeHttpRequest($itemsUrl, 'GET', $headers);
+    $response = makeHttpRequest($bibIdUrl . "{$bibId}", 'GET', $headers);
 
     if ($response['status'] !== 200) {
         echo "Kunde inte hämta items. Status: {$response['status']}\n";
@@ -388,11 +398,10 @@ $parameters = [	'limit' => '10',
  				'createdDate' => '2025-02-07',
  				'deleted' => 'false',
                 'suppressed' => 'false'];
-$token = authenticateAndGetToken($authUrl, $clientKey, $clientSecret);
-//$token = ' OEqPT2z77G85Hg9R9VEfq0GuOzqOO0Sf5PmFhwS3Kg77vyjSw6bb293YpVlkLFGB0VtD2Vhcs0lkhBSup13VszDllt8JTUycnOnIVoLANjGRG4XkQL2trnHfjELxYHEy';
+$token = authenticateAndGetToken($baseUrl . $tokenEndpoint, $clientKey, $clientSecret);
 
 if ($token) {
-    $sierraBibIds = getSierraBibIdsFromIdentifiers($identifiers, $token);
+    $sierraBibIds = getSierraBibIdsFromIdentifiers($baseUrl . $queryEndpoint, $identifiers, $token);
 
 if (!$sierraBibIds) {
     echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
@@ -401,7 +410,7 @@ if (!$sierraBibIds) {
 
 foreach ($sierraBibIds as $sierraBibId) {
     echo "Hämtar items för Sierra Bib_ID: $sierraBibId\n";
-    $itemsJson = fetchItemsForBibId($sierraBibId, $token);
+    $itemsJson = fetchItemsForBibId($baseUrl . $bibsEndpoint, $sierraBibId, $token);
 
     if ($itemsJson !== null) {
         $itemsArray = jsonToArray($itemsJson);
