@@ -172,9 +172,10 @@ $xml->asXML('products.xml')
 
 // === CHATGTPs LÖSNING ===
 
-// Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=m5z29vlz3tvn423&ISBN=9789186745349
-
-// Felmeddelande som ges: Authorization header: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ== Body: grant_type=client_credentials === AUTH RESPONSE === {"access_token":"yCsqVeJfztktJelAo5I_1yznr8nniWW7MWcc0w39jY368i551ftbqXotKjJjPylNgrEdOCA_uki99AeyJc4ttQ_BqZNsqHdulxfXmOlirtzB8H9kdu8eN3EEw_eycb3i","token_type":"bearer","expires_in":3600} === SÖKER MED Bib_ID === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"029","subfield":"a"},"m5z29vlz3tvn423"]}} == RESPONSE FOR Bib_ID == {"code":121,"specificCode":0,"httpStatus":400,"name":"Bad Request : Invalid authorization scheme"} Sökning med Bib_ID misslyckades. Status: 400 === SÖKER MED ISBN === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"020","subfield":"a"},"9789186745349"]}} == RESPONSE FOR ISBN == {"code":121,"specificCode":0,"httpStatus":400,"name":"Bad Request : Invalid authorization scheme"} Sökning med ISBN misslyckades. Status: 400 Ingen träff med Bib_ID, ISBN eller ONR Inget bibID hittades för angivna parametrar: {"Bib_ID":"m5z29vlz3tvn423","ISBN":"9789186745349","ONR":null} Inget bibID hittades för angivna parametrar: {"Bib_ID":"m5z29vlz3tvn423","ISBN":"9789186745349","ONR":null}
+// FORTSÄTT MED: får svar men jag tror att de inte är rätt. Kanske tar inte api/query den json-query jag skickar med Bib_ID och ISBN.
+// Får samma 10 svar som jag fick med sökning på annat bibID och ISBN.
+// Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
+// Felmeddelande som ges: Array ( [Bib_ID] => 9v8xbqxk785qpxhh [isbn] => 9789177754657 ) SÄNDER HEADER: Content-Type: application/x-www-form-urlencoded SÄNDER HEADER: Accept: application/json SÄNDER HEADER: Authorization: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ== === AUTH RESPONSE === {"access_token":"0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa","token_type":"bearer","expires_in":3600} === SÖKER MED bib_id === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"029","subfield":"a"},"9v8xbqxk785qpxhh"]}} === TOKEN I getSierraBibIdsFromIdentifiers === 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa === queryURL === https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/query?limit=10&offset=0 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Content-Type: application/json SÄNDER HEADER: Accept: application/json == RESPONSE FOR bib_id == {"total":10,"start":0,"entries":[{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000025"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000049"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000073"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000110"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000131"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000139"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000213"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000268"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000274"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000302"}]} Hämtar items för Sierra Bib_ID: 1000025 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Accept: application/json Fel: JSON saknar 'entries' eller är inte en array.
 
 // === KONFIGURATION ===
 $configPath = __DIR__ . '/config/config.json';
@@ -192,17 +193,22 @@ require_once __DIR__ . '/generatexmlfromitems.php';
 
 $baseUrl = rtrim($config['api_base_url'], '/');
 $tokenEndpoint = rtrim($config['token_endpoint'], '/');
-$queryEndpoint = rtrim($config['token_endpoint'], '/');
+$queryEndpoint = rtrim($config['query_endpoint'], '/');
 $bibsEndpoint = rtrim($config['bibs_endpoint'], '/');
 $itemsEndpoint = rtrim($config['items_endpoint'], '/');
 
 $dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/items';
 
+$normalizedGet = array_change_key_case($_GET, CASE_LOWER);
+
+print_r($_GET);
+
 $identifiers = [
-    'Bib_ID' => $_GET['Bib_ID'] ?? null,
-    'ISBN'   => $_GET['ISBN'] ?? null,
-    'ONR'    => $_GET['ONR'] ?? null
+    'bib_id' => $normalizedGet['bib_id'] ?? null,
+    'isbn'   => $normalizedGet['isbn'] ?? null,
+    'onr'    => $normalizedGet['onr'] ?? null
 ];
+
 
 
 if (!$identifiers) {
@@ -235,6 +241,7 @@ function makeHttpRequest(string $url, string $method = 'GET', array $headers = [
         // cURL vill ha headers som en array av "Header: value"-strängar
         $formattedHeaders = [];
         foreach ($headers as $key => $value) {
+            echo "SÄNDER HEADER: $key: $value\n";
             $formattedHeaders[] = "$key: $value";
         }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $formattedHeaders);
@@ -266,9 +273,6 @@ function authenticateAndGetToken($authUrl, $clientKey, $clientSecret): ?string {
     $authHeader = base64_encode("$clientKey:$clientSecret");
     $headers['Authorization'] = 'Basic ' . $authHeader;
 
-    echo "Authorization header: Basic $authHeader\n";
-    echo "Body: $body\n";
-
     $result = makeHttpRequest($authUrl, 'POST', $headers, $body);
 
     echo "=== AUTH RESPONSE ===\n" . $result['response'] . "\n";
@@ -298,6 +302,8 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
         'Authorization' => 'Bearer ' . $token,
         'Accept' => 'application/json'
     ];
+    echo "=== TOKEN USED ===\n";
+    echo $token . "\n";
 
     $result = makeHttpRequest($dataUrl, 'GET', $headers);
 
@@ -318,16 +324,13 @@ function getSierraBibIdsFromIdentifiers(string $queryUrl, array $identifiers, st
     $offset = 0;
 
     $fields = [
-        'Bib_ID' => ['marcTag' => '029', 'subfield' => 'a'],
-        'ISBN'   => ['marcTag' => '020', 'subfield' => 'a'],
-        'ONR'    => ['marcTag' => '035', 'subfield' => 'a']
+        'bib_id' => ['marcTag' => '029', 'subfield' => 'a'],
+        'isbn'   => ['marcTag' => '020', 'subfield' => 'a'],
+        'onr'    => ['marcTag' => '035', 'subfield' => 'a']
     ];
 
     foreach ($fields as $key => $marc) {
-        if (empty($identifiers[$key])) continue;
-
-        // Bygg URL med limit och offset som query params
-        $url = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
+        if (!isset($identifiers[$key]) || $identifiers[$key] === '') continue;
 
         $query = [
             "target" => ["record" => ["type" => "bib"]],
@@ -341,16 +344,19 @@ function getSierraBibIdsFromIdentifiers(string $queryUrl, array $identifiers, st
         ];
 
         $jsonQuery = json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
         echo "=== SÖKER MED $key ===\n$jsonQuery\n";
+        $queryUrl = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'
         ];
-
-        $response = makeHttpRequest($url, 'POST', $headers, $jsonQuery);
+        echo "=== TOKEN I getSierraBibIdsFromIdentifiers ===\n";
+        echo $token . "\n";
+        echo "=== queryURL ===\n";
+        echo $queryUrl. "\n";
+        $response = makeHttpRequest($queryUrl, 'POST', $headers, $jsonQuery);
         echo "== RESPONSE FOR $key ==\n" . $response['response'] . "\n";
 
         if ($response['status'] !== 200) {
@@ -380,8 +386,8 @@ function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?strin
         'Authorization' => 'Bearer ' . $token,
         'Accept' => 'application/json'
     ];
-
-    $response = makeHttpRequest($bibIdUrl . "{$bibId}", 'GET', $headers);
+    $url = rtrim($bibIdUrl, '/') . '/' . $bibId;
+    $response = makeHttpRequest($url, 'GET', $headers);
 
     if ($response['status'] !== 200) {
         echo "Kunde inte hämta items. Status: {$response['status']}\n";
@@ -394,10 +400,10 @@ function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?strin
 
 // === HUVUDFLÖDE ===
 
-$parameters = [	'limit' => '10',
- 				'createdDate' => '2025-02-07',
- 				'deleted' => 'false',
-                'suppressed' => 'false'];
+// $parameters = [	'limit' => '10',
+//  				'createdDate' => '2025-02-07',
+//  				'deleted' => 'false',
+//                 'suppressed' => 'false'];
 $token = authenticateAndGetToken($baseUrl . $tokenEndpoint, $clientKey, $clientSecret);
 
 if ($token) {
