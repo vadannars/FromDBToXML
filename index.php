@@ -78,8 +78,9 @@ https://gorest.co.in/
 */
 
 // === CHATGTPs LÖSNING ===
-
-// FORTSÄTT MED: Blir mycket riktigt fel svar. Får de 10 första posterna från offset 0, och får andra poster om jag ändrar offset. Har skickat fråga till Ines,
+//
+// FORTSÄTT MED: Se till att svaren hanteras på rätt sätt för att  hitta items och skapa xml från dem. Kan vara så att vi letar med rätt siffra men fortfarande inte hittar poster med items. fortsätt jämföra med api:et.
+// ATT GÖRA: Rätta queryn. Blir mycket riktigt fel svar. Får de 10 första posterna från offset 0, och får andra poster om jag ändrar offset. Har skickat fråga till Ines,
 // och hon skickar troligen vidare till supporten.
 // Får samma 10 svar som jag fick med sökning på annat bibID och ISBN.
 // Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
@@ -237,34 +238,54 @@ function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offse
         'onr'    => ['marcTag' => '035', 'subfield' => 'a']
     ];
 
+    // Sätt querystring UTANFÖR loopen
+    $queryUrlWithParams = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
+
     foreach ($fields as $key => $marc) {
         if (!isset($identifiers[$key]) || $identifiers[$key] === '') continue;
 
-        $query = [
-            "target" => ["record" => ["type" => "bib"]],
-            "expr" => [
+$query = [
+    "target" => ["record" => ["type" => "bib"]],
+    "expr" => [
+        "op" => "and",
+        "args" => [
+            [
                 "op" => "equals",
                 "args" => [
-                    $marc,
+                    [ "op" => "field", "args" => [$marc['marcTag'], $marc['subfield']] ],
                     $identifiers[$key]
                 ]
+            ],
+            [
+                "op" => "not",
+                "args" => [
+                    [ "op" => "equals", "args" => ["deleted", true] ]
+                ]
+            ],
+            [
+                "op" => "not",
+                "args" => [
+                    [ "op" => "equals", "args" => ["suppressed", true] ]
+                ]
             ]
-        ];
+        ]
+    ]
+];
+
 
         $jsonQuery = json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         echo "=== SÖKER MED $key ===\n$jsonQuery\n";
-        $queryUrl = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'
         ];
-        echo "=== TOKEN I getSierraBibIdsFromIdentifiers ===\n";
-        echo $token . "\n";
+
         echo "=== queryURL ===\n";
-        echo $queryUrl. "\n";
-        $response = makeHttpRequest($queryUrl, 'POST', $headers, $jsonQuery);
+        echo $queryUrlWithParams . "\n";
+
+        $response = makeHttpRequest($queryUrlWithParams, 'POST', $headers, $jsonQuery);
         echo "== RESPONSE FOR $key ==\n" . $response['response'] . "\n";
 
         if ($response['status'] !== 200) {
@@ -278,9 +299,18 @@ function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offse
             continue;
         }
 
-        return array_map(function ($entry) {
-            return (int) basename($entry['link']);
-        }, $data['entries']);
+        // Extrahera bib-ID med separat funktion
+        $bibIds = [];
+        foreach ($data['entries'] as $entry) {
+            $id = extractBibIdFromLink($entry['link']);
+            if ($id !== null) {
+                $bibIds[] = $id;
+            }
+        }
+
+        if (!empty($bibIds)) {
+            return $bibIds;
+        }
     }
 
     echo "Ingen träff med Bib_ID, ISBN eller ONR\n";
@@ -289,12 +319,24 @@ function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offse
 }
 
 
-function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?string {
+function extractBibIdFromLink(string $link): ?string {
+    $id = basename($link);
+
+    // Enklare validering – tomma ID:n bör ignoreras
+    return $id !== '' ? $id : null;
+}
+
+
+function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?array {
     $headers = [
         'Authorization' => 'Bearer ' . $token,
         'Accept' => 'application/json'
     ];
-    $url = rtrim($bibIdUrl, '/') . '/' . $bibId;
+
+    // Hämta items för bibId
+    $url = rtrim($bibIdUrl, '/') . '/' . $bibId . '/items';
+    echo ">>> HÄMTAR FRÅN URL: $url\n";
+
     $response = makeHttpRequest($url, 'GET', $headers);
 
     if ($response['status'] !== 200) {
@@ -302,8 +344,25 @@ function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?strin
         return null;
     }
 
-    return $response['response'];
+    $itemsData = json_decode($response['response'], true);
+    if (!isset($itemsData['entries']) || !is_array($itemsData['entries'])) {
+        echo "Fel: JSON saknar 'entries' eller är inte en array.\n";
+        return null;
+    }
+
+    // Filtrera bort deleted och suppressed items
+    $validItems = array_filter($itemsData['entries'], function ($item) {
+        return empty($item['deleted']) && empty($item['suppressed']);
+    });
+
+    if (empty($validItems)) {
+        echo "Inga giltiga (icke-supprimerade eller raderade) items för bibId: $bibId\n";
+        return null;
+    }
+
+    return $validItems;
 }
+
 
 
 // === HUVUDFLÖDE ===
@@ -317,21 +376,22 @@ $token = authenticateAndGetToken($baseUrl . $tokenEndpoint, $clientKey, $clientS
 if ($token) {
     $sierraBibIds = getSierraBibIdsFromIdentifiers($baseUrl . $queryEndpoint, $limit, $offset, $identifiers, $token);
 
-if (!$sierraBibIds) {
-    echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
-    exit;
-}
-
-foreach ($sierraBibIds as $sierraBibId) {
-    echo "Hämtar items för Sierra Bib_ID: $sierraBibId\n";
-    $itemsJson = fetchItemsForBibId($baseUrl . $bibsEndpoint, $sierraBibId, $token);
-
-    if ($itemsJson !== null) {
-        $itemsArray = jsonToArray($itemsJson);
-        generateXMLFromData($itemsArray);
-        break; // Sluta efter första som har items
+    if (!$sierraBibIds) {
+        echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
+        exit;
     }
-}
+
+    foreach ($sierraBibIds as $sierraBibId) {
+        echo "Hämtar items för Sierra Bib_ID: $sierraBibId\n";
+        $items = fetchItemsForBibId($baseUrl . $bibsEndpoint, $sierraBibId, $token);
+
+        if ($items !== null) {
+            echo "=== RAW itemsJson respone ===\n";
+            echo $items . "\n";
+            generateXMLFromData($itemsArray);
+            break; // Sluta efter första som har items
+        }
+    }
 } else {
     echo "Ingen token kunde hämtas. Avbryter.\n";
 }
