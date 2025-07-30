@@ -1,11 +1,6 @@
 <?php
 
 /*
-curl -X POST https://gotlib.goteborg.se/iii/sierra-api/v6/token -H "Authorization: Basic $(echo -n 'nxp4yHPM46n/15Ut7dv4zY1QUTkp:IvoryLemon#169' | base64)" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials"
-
-curl -X POST https://gotlib.goteborg.se/iii/sierra-api/v6/token -H "Authorization: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials"
-
-
 
 marc: https://www.oclc.org/bibformats/en/0xx.html
 bibframe: https://www.loc.gov/bibframe/
@@ -80,99 +75,12 @@ PROJEKTETS DELMÅL:
 API:er att testa emot:
 https://petstore.swagger.io/
 https://gorest.co.in/
-
-Samplekod för att generera en xml:
-$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"><products></products>');
-
-$product = $xml->addChild('product');
-$product->addChild('name','Product 1');
-$product->addChild('price','19.99');
-
-$xml->asXML('products.xml')
-
 */
-
-//require 'vendor/autoload.php';
-
-//use GuzzleHttp\Client;
-
-// $apiAuth = 'Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ==';
-// $headers = ['Authorization' => $apiAuth];
-// $parameters = [	'limit' => '5',
-// 				'fields' => 'isbn,issn,title,author,locations,holdCount,callNumber,items',
-// 				'cratedDate' => '2025-05-05',
-// 				'deleted' => 'false'];
-
-// $xmlString = '<?xml version="1.0" encoding="UTF-8"><status></status>';
-// $responseAsXML = new SimpleXMLElement($xmlString);
-// $callMethod = 'GET';
-// $apiAdress = 'https://gotlib.goteborg.se/iii/sierra-api//swagger/index.html#!/bibs/Get_a_list_of_bibs_get_0';
-
-//$apiToken = callAPI('POST','https://gotlib.goteborg.se/iii/sierra-api/v6/token',[], $headers);
-//$APIresponse = callAPI($callMethod, $apiAdress, $parameters =[], $headers = []);
-//$responseData = decodeJSONResponse($APIresponse);
-//$tokenResponse = decodeJSONResponse($apiToken);
-//printJSONdata($responseData);
-//printJSONdata($tokenResponse);
-//$token = getTokenFromArray($tokenResponse);
-//echo $token;
-// echo 'test'; // FUNGERAR, det är något med resten av koden som inte vill (lol).
-// //arrayToXml($responseData,$responseAsXML);
-// //$responseAsXML->asXML('loanstatus.xml');
-
-// function getTokenFromArray($tokenResponse) {
-// 	foreach ($tokenResponse as $key => $value) {
-// 		if ($key == 'access_token') {
-// 			return $value;
-// 		}
-// 	}
-// }
-
-// function callAPI($method, $apiAdress, $queryParameters, $headers) {
-// 	$client = new Client();
-// 	$response = $client->request($method, $apiAdress, [
-// 			'query' => $queryParameters, [
-// 			'headers' => $headers
-// 			]
-// 		]);
-// 	return$response;
-// }
-
-// function decodeJSONResponse($APIresponse){
-// 	$responseData = json_decode($APIresponse->getBody(), true);
-// 	return$responseData;
-// }
-
-// function printJSONdata ($data){
-// 	print_r($data);
-// }
-
-// function arrayToXml($data, $xmlData) {
-// 	$libraryDescription = 'Exemplarstatus för böcker i Göteborgs Stadsbiblioteks katalog';
-
-// 	if ($xmlData->getName() !== 'channel') {
-// 		$channel = $xmlData->addChild('channel');
-// 	} else {$channel = $xmlData;}
-
-// 	$channel->addChild('description', htmlspecialchars($libraryDescription));
-// 	$itemInfoNode = $channel->addChild('Item_information');
-
-// 	foreach ($data as $key => $value) {
-// 		if (is_numeric($key)) {
-// 			$key = "item$key";
-// 		}
-// 		if (is_array($value)) {
-// 			$subnode = $itemInfoNode->addChild($key);
-// 			arrayToXml($value, $subnode);
-// 		} else {
-// 			$itemInfoNode->addChild($key, htmlspecialchars($value));
-// 		}
-// 	}
-// }
 
 // === CHATGTPs LÖSNING ===
 
-// FORTSÄTT MED: får svar men jag tror att de inte är rätt. Kanske tar inte api/query den json-query jag skickar med Bib_ID och ISBN.
+// FORTSÄTT MED: Blir mycket riktigt fel svar. Får de 10 första posterna från offset 0, och får andra poster om jag ändrar offset. Har skickat fråga till Ines,
+// och hon skickar troligen vidare till supporten.
 // Får samma 10 svar som jag fick med sökning på annat bibID och ISBN.
 // Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 // Felmeddelande som ges: Array ( [Bib_ID] => 9v8xbqxk785qpxhh [isbn] => 9789177754657 ) SÄNDER HEADER: Content-Type: application/x-www-form-urlencoded SÄNDER HEADER: Accept: application/json SÄNDER HEADER: Authorization: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ== === AUTH RESPONSE === {"access_token":"0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa","token_type":"bearer","expires_in":3600} === SÖKER MED bib_id === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"029","subfield":"a"},"9v8xbqxk785qpxhh"]}} === TOKEN I getSierraBibIdsFromIdentifiers === 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa === queryURL === https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/query?limit=10&offset=0 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Content-Type: application/json SÄNDER HEADER: Accept: application/json == RESPONSE FOR bib_id == {"total":10,"start":0,"entries":[{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000025"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000049"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000073"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000110"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000131"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000139"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000213"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000268"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000274"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000302"}]} Hämtar items för Sierra Bib_ID: 1000025 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Accept: application/json Fel: JSON saknar 'entries' eller är inte en array.
