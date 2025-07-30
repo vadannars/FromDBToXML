@@ -196,6 +196,8 @@ $tokenEndpoint = rtrim($config['token_endpoint'], '/');
 $queryEndpoint = rtrim($config['query_endpoint'], '/');
 $bibsEndpoint = rtrim($config['bibs_endpoint'], '/');
 $itemsEndpoint = rtrim($config['items_endpoint'], '/');
+$offset = isset($config['query_parameters']['offset']) ? (int)$config['query_parameters']['offset'] : 0;
+$limit  = isset($config['query_parameters']['limit']) ? (int)$config['query_parameters']['limit'] : 10;
 
 $dataUrl = 'https://gotlib.goteborg.se/iii/sierra-api/v6/items';
 
@@ -319,9 +321,7 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
     // Vill du göra något mer med datan? Lägg till det här!
 }
 
-function getSierraBibIdsFromIdentifiers(string $queryUrl, array $identifiers, string $token): ?array {
-    $limit = 10;
-    $offset = 0;
+function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offset, array $identifiers, string $token): ?array {
 
     $fields = [
         'bib_id' => ['marcTag' => '029', 'subfield' => 'a'],
@@ -407,7 +407,7 @@ function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?strin
 $token = authenticateAndGetToken($baseUrl . $tokenEndpoint, $clientKey, $clientSecret);
 
 if ($token) {
-    $sierraBibIds = getSierraBibIdsFromIdentifiers($baseUrl . $queryEndpoint, $identifiers, $token);
+    $sierraBibIds = getSierraBibIdsFromIdentifiers($baseUrl . $queryEndpoint, $limit, $offset, $identifiers, $token);
 
 if (!$sierraBibIds) {
     echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
