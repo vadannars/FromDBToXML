@@ -231,92 +231,86 @@ function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
 }
 
 function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offset, array $identifiers, string $token): ?array {
-
-    $fields = [
-        'bib_id' => ['marcTag' => '029', 'subfield' => 'a'],
-        'isbn'   => ['marcTag' => '020', 'subfield' => 'a'],
-        'onr'    => ['marcTag' => '035', 'subfield' => 'a']
-    ];
-
-    // Sätt querystring UTANFÖR loopen
     $queryUrlWithParams = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
 
-    foreach ($fields as $key => $marc) {
-        if (!isset($identifiers[$key]) || $identifiers[$key] === '') continue;
+    $query = buildCombinedQuery($identifiers);
+    if ($query === null) {
+        echo "Inga giltiga identifierare angivna.\n";
+        return null;
+    }
 
-$query = [
-    "target" => ["record" => ["type" => "bib"]],
-    "expr" => [
-        "op" => "and",
-        "args" => [
-            [
-                "op" => "equals",
-                "args" => [
-                    [ "op" => "field", "args" => [$marc['marcTag'], $marc['subfield']] ],
-                    $identifiers[$key]
-                ]
+    $jsonQuery = json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    echo "=== SÖKER MED SAMMANSATT QUERY ===\n$jsonQuery\n";
+
+    $headers = [
+        'Authorization' => 'Bearer ' . $token,
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+    ];
+
+    echo "=== queryURL ===\n$queryUrlWithParams\n";
+
+    $response = makeHttpRequest($queryUrlWithParams, 'POST', $headers, $jsonQuery);
+    echo "== RESPONSE ==\n" . $response['response'] . "\n";
+
+    if ($response['status'] !== 200) {
+        echo "Sökning misslyckades. Status: {$response['status']}\n";
+        return null;
+    }
+
+    return extractBibIdsFromResponse($response['response']);
+}
+
+function buildCombinedQuery(array $identifiers): ?array {
+    $fields = [
+        'bib_id' => ['tag' => 'j',        'value' => $identifiers['bib_id'] ?? null],
+        'isbn'   => ['tag' => 'i',        'value' => $identifiers['isbn'] ?? null],
+        'onr'    => ['marcTag' => '035',  'value' => $identifiers['onr'] ?? null]
+    ];
+
+    $queryParts = [];
+    foreach ($fields as $field) {
+        if (empty($field['value'])) continue;
+
+        if (!empty($queryParts)) {
+            $queryParts[] = 'or';
+        }
+
+        $targetField = isset($field['tag']) ? ['tag' => $field['tag']] : ['marcTag' => $field['marcTag']];
+
+        $queryParts[] = [
+            'target' => [
+                'record' => ['type' => 'bib'],
+                'field'  => $targetField
             ],
-            [
-                "op" => "not",
-                "args" => [
-                    [ "op" => "equals", "args" => ["deleted", true] ]
-                ]
-            ],
-            [
-                "op" => "not",
-                "args" => [
-                    [ "op" => "equals", "args" => ["suppressed", true] ]
-                ]
+            'expr' => [
+                'op' => 'equals',
+                'operands' => [$field['value'], '']
             ]
-        ]
-    ]
-];
-
-
-        $jsonQuery = json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        echo "=== SÖKER MED $key ===\n$jsonQuery\n";
-
-        $headers = [
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json'
         ];
+    }
 
-        echo "=== queryURL ===\n";
-        echo $queryUrlWithParams . "\n";
+    return empty($queryParts) ? null : ['queries' => $queryParts];
+}
 
-        $response = makeHttpRequest($queryUrlWithParams, 'POST', $headers, $jsonQuery);
-        echo "== RESPONSE FOR $key ==\n" . $response['response'] . "\n";
+function extractBibIdsFromResponse(string $json): ?array {
+    $data = json_decode($json, true);
+    if (!isset($data['entries']) || !is_array($data['entries'])) {
+        echo "Inga träffar i svaret.\n";
+        return null;
+    }
 
-        if ($response['status'] !== 200) {
-            echo "Sökning med $key misslyckades. Status: {$response['status']}\n";
-            continue;
-        }
-
-        $data = json_decode($response['response'], true);
-        if (!isset($data['entries']) || empty($data['entries'])) {
-            echo "Inga träffar med $key = {$identifiers[$key]}\n";
-            continue;
-        }
-
-        // Extrahera bib-ID med separat funktion
-        $bibIds = [];
-        foreach ($data['entries'] as $entry) {
-            $id = extractBibIdFromLink($entry['link']);
-            if ($id !== null) {
-                $bibIds[] = $id;
-            }
-        }
-
-        if (!empty($bibIds)) {
-            return $bibIds;
+    $bibIds = [];
+    foreach ($data['entries'] as $entry) {
+        $id = extractBibIdFromLink($entry['link'] ?? '');
+        if ($id !== null) {
+            $bibIds[] = $id;
         }
     }
 
-    echo "Ingen träff med Bib_ID, ISBN eller ONR\n";
-    echo "Inget bibID hittades för angivna parametrar: " . json_encode($identifiers) . "\n";
-    return null;
+    return $bibIds ?: null;
 }
+
 
 
 function extractBibIdFromLink(string $link): ?string {
@@ -327,14 +321,54 @@ function extractBibIdFromLink(string $link): ?string {
 }
 
 
-function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?array {
+/**
+ * Bygger URL för att hämta items för ett specifikt bibID.
+ */
+function buildItemsUrl(string $baseUrl, string $bibId): string {
+    $params = http_build_query([
+        'fields'     => 'location,callNumber,status',
+        'deleted'    => 'false',
+        'suppressed' => 'false',
+        'bibIds'     => $bibId
+    ]);
+
+    return rtrim($baseUrl, '/') . '/?' . $params;
+}
+
+/**
+ * Tolkar HTTP-svar och returnerar ett strukturerat array-format av items.
+ */
+function parseItemsResponse(string $jsonResponse): ?array {
+    $data = json_decode($jsonResponse, true);
+
+    if (!isset($data['entries']) || empty($data['entries'])) {
+        return null;
+    }
+
+    $items = [];
+
+    foreach ($data['entries'] as $entry) {
+        $items[] = [
+            'location'    => $entry['location']['code'] ?? null,
+            'callNumber'  => $entry['callNumber'] ?? null,
+            'status'      => $entry['status']['code'] ?? null
+        ];
+    }
+
+    return $items;
+}
+
+/**
+ * Huvudfunktion som anropar Sierra API för att hämta items till ett bibId.
+ */
+function fetchItemsForBibId(string $baseUrl, string $bibId, string $token): ?array {
+    $url = buildItemsUrl($baseUrl, $bibId);
+
     $headers = [
         'Authorization' => 'Bearer ' . $token,
-        'Accept' => 'application/json'
+        'Accept'        => 'application/json'
     ];
 
-    // Hämta items för bibId
-    $url = rtrim($bibIdUrl, '/') . '/' . $bibId . '/items';
     echo ">>> HÄMTAR FRÅN URL: $url\n";
 
     $response = makeHttpRequest($url, 'GET', $headers);
@@ -344,24 +378,10 @@ function fetchItemsForBibId(string $bibIdUrl, int $bibId, string $token): ?array
         return null;
     }
 
-    $itemsData = json_decode($response['response'], true);
-    if (!isset($itemsData['entries']) || !is_array($itemsData['entries'])) {
-        echo "Fel: JSON saknar 'entries' eller är inte en array.\n";
-        return null;
-    }
-
-    // Filtrera bort deleted och suppressed items
-    $validItems = array_filter($itemsData['entries'], function ($item) {
-        return empty($item['deleted']) && empty($item['suppressed']);
-    });
-
-    if (empty($validItems)) {
-        echo "Inga giltiga (icke-supprimerade eller raderade) items för bibId: $bibId\n";
-        return null;
-    }
-
-    return $validItems;
+    echo ">>> Lyckades hämta items för bibID: $bibId\n";
+    return parseItemsResponse($response['response']);
 }
+
 
 
 
@@ -383,12 +403,12 @@ if ($token) {
 
     foreach ($sierraBibIds as $sierraBibId) {
         echo "Hämtar items för Sierra Bib_ID: $sierraBibId\n";
-        $items = fetchItemsForBibId($baseUrl . $bibsEndpoint, $sierraBibId, $token);
+        $items = fetchItemsForBibId($baseUrl . $itemsEndpoint, $sierraBibId, $token);
 
         if ($items !== null) {
             echo "=== RAW itemsJson respone ===\n";
-            echo $items . "\n";
-            generateXMLFromData($itemsArray);
+            print_r($items); // För att se den strukturerade arrayen
+            generateXMLFromData($items);
             break; // Sluta efter första som har items
         }
     }

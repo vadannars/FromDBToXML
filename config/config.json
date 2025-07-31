@@ -7,7 +7,7 @@
   "bibs_endpoint": "/bibs",
   "items_endpoint": "/items",
   "query_parameters": {
-    "offset": "677997",
+    "offset": "0",
     "limit": 10
   },
   "active": "true"

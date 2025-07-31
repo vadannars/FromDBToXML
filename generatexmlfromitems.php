@@ -91,13 +91,12 @@ function generateXmlFromData(array $data): void {
     // Räkna item_nr
     $itemNr = 1;
 
-    // Kontroll: finns "entries" i arrayen?
-    if (!isset($data['entries']) || !is_array($data['entries'])) {
-        die("Fel: JSON saknar 'entries' eller är inte en array.");
+    if (!is_array($data)) {
+    die("Fel: Data är inte en array.");
     }
 
     // Loopa igenom alla Items
-    foreach ($data['entries'] as $entry) {
+    foreach ($data as $entry) {
         $xmlItem = $itemInfo->addChild('Item');
 
         foreach ($tagMap as $tag => $info) {
