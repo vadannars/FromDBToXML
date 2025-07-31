@@ -349,14 +349,20 @@ function parseItemsResponse(string $jsonResponse): ?array {
 
     foreach ($data['entries'] as $entry) {
         $items[] = [
-            'location'    => $entry['location']['code'] ?? null,
-            'callNumber'  => $entry['callNumber'] ?? null,
-            'status'      => $entry['status']['code'] ?? null
+            'location' => [
+                'name' => $entry['location']['name'] ?? ($entry['location']['code'] ?? '')
+            ],
+            'callNumber' => $entry['callNumber'] ?? '',
+            'status' => [
+                'code' => $entry['status']['code'] ?? 'UNKNOWN',
+                'duedate' => $entry['status']['duedate'] ?? ''
+            ]
         ];
     }
 
     return $items;
 }
+
 
 /**
  * Huvudfunktion som anropar Sierra API för att hämta items till ett bibId.

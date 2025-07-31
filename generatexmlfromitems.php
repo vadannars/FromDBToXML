@@ -1,18 +1,6 @@
 <?php
 
-function generateXmlFromData(array $data): void {
-    // Starta XML
-    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
-
-    // Skapa channel-nod
-    $channel = $xml->addChild('channel');
-    $channel->addChild('description', 'Exemplarstatus för böcker i Göteborgs biblioteks katalog');
-
-    // Skapa Item_information-nod
-    $itemInfo = $channel->addChild('Item_information');
-
-    // Status enum-liknande mappning
-    function mapStatus($code) {
+function mapStatus($code) {
         $code = trim($code ?? '');
         $map = [
             '-' => 'Tillgänglig',
@@ -28,33 +16,44 @@ function generateXmlFromData(array $data): void {
         return $map[$code] ?? 'Okänd status';
     }
 
-    function getMappedValue($tagRule, $data) {
-        if (is_callable($tagRule)) {
-            return $tagRule($data);
-        }
-
-        if (is_string($tagRule)) {
-            return $data[$tagRule] ?? null;
-        }
-
-        if (is_array($tagRule) && isset($tagRule['path'])) {
-            $value = $data;
-            foreach ($tagRule['path'] as $key) {
-                if (!isset($value[$key])) {
-                    return null;
-                }
-                $value = $value[$key];
-            }
-
-            if (isset($tagRule['map']) && $tagRule['map'] === 'status') {
-                return mapStatus($value);
-            }
-
-            return $value;
-        }
-
-        return null;
+function getMappedValue($tagRule, $data) {
+    if (is_callable($tagRule)) {
+        return $tagRule($data);
     }
+
+    if (is_string($tagRule)) {
+        return $data[$tagRule] ?? null;
+    }
+
+    if (is_array($tagRule) && isset($tagRule['path'])) {
+        $value = $data;
+        foreach ($tagRule['path'] as $key) {
+            if (!isset($value[$key])) {
+                return null;
+            }
+            $value = $value[$key];
+        }
+
+        if (isset($tagRule['map']) && $tagRule['map'] === 'status') {
+            return mapStatus($value);
+        }
+
+        return $value;
+    }
+
+    return null;
+}
+
+function generateXmlFromData(array $data): void {
+    // Starta XML
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
+
+    // Skapa channel-nod
+    $channel = $xml->addChild('channel');
+    $channel->addChild('description', 'Exemplarstatus för böcker i Göteborgs biblioteks katalog');
+
+    // Skapa Item_information-nod
+    $itemInfo = $channel->addChild('Item_information');
 
     $tagMap = [
         'Item_No' => 'counter',
@@ -97,6 +96,7 @@ function generateXmlFromData(array $data): void {
 
     // Loopa igenom alla Items
     foreach ($data as $entry) {
+        error_log(print_r($entry, true));
         $xmlItem = $itemInfo->addChild('Item');
 
         foreach ($tagMap as $tag => $info) {
@@ -112,23 +112,8 @@ function generateXmlFromData(array $data): void {
                 continue;
             }
 
-            if (is_callable($info)) {
-                $value = $info($entry);
-                $xmlItem->addChild($tag, htmlspecialchars($value ?? ''));
-                continue;
-            }
             // Navigera i arrayen
-            $value = $entry;
-            foreach ($info['path'] as $key) {
-                $value = $value[$key] ?? null;
-                if ($value === null) break;
-            }
-
-            // Mappning via enum?
-            if (isset($info['map']) && $info['map'] === 'status') {
-                $value = mapStatus($value);
-            }
-
+            $value = getMappedValue($info, $entry);
             // Om värdet är null, skapa tom nod
             $xmlItem->addChild($tag, htmlspecialchars($value ?? ''));
         }
