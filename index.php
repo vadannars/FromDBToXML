@@ -2,9 +2,6 @@
 
 /*
 
-marc: https://www.oclc.org/bibformats/en/0xx.html
-bibframe: https://www.loc.gov/bibframe/
-
 Adress till bibliotekets api:
 gotlib.goteborg.se/iii/sierra-api/
 
@@ -12,79 +9,18 @@ FÖR ATT TESTKÖRA:
 i terminalen:
 apache2ctl start
 
-PROJEKTETS DELMÅL:
+=== FORTSÄTT MED ===
+    * Ta reda på, och justera om det jag har nu kommer att fungera när det anropas som libris vill göra
+    * Rensa loggutskrifter och annat wip-grejs
+    * Lägg in läsbara felmeddelanden för kommande generationer
+    * Snygga till kod och kommentarer
+    * Strukturera om koden så den är mer robust och modulär
+    * Ta reda på vad som behövs för att lägga upp den i webmaster
+    * Skriv en teknisk beskrivning av utvecklingen så att kommande justeringar blir lätta att göra
 
-* Skapa testmiljö i codespaces - KLART
-* Skapa XML - KLART
-* Hur loopa igenom apisvar?
-	Verkar ej behövas. decodeJson skapar en array direkt. Ska loopa igenom arrayen enligt nedan.
-* Hur loopa skapandet av xml?
-	// Sample JSON string
-	$json = '{"name": "John", "age": 30, "city": "Göteborg"}';
-
-	// Decode JSON into an associative array
-	$array = json_decode($json, true);
-
-	// Function to convert array to XML
-	function arrayToXml($data, &$xmlData) {
-		foreach ($data as $key => $value) {
-			// Handle numeric keys
-			if (is_numeric($key)) {
-				$key = "item$key";
-			}
-			if (is_array($value)) {
-				$subnode = $xmlData->addChild($key);
-				arrayToXml($value, $subnode);
-			} else {
-				$xmlData->addChild($key, htmlspecialchars($value));
-			}
-		}
-	}
-
-	// Create a new XML object
-	$xmlData = new SimpleXMLElement('<?xml version="1.0"><root></root>');
-
-	// Convert array to XML
-	arrayToXml($array, $xmlData);
-
-	// Output XML
-	echo $xmlData->asXML();
-* Hur ta parametrar?
-	// URL: http://example.com?name=Alice
-	$name = $_GET['name'] ?? 'Guest'; // Default to 'Guest' if 'name' is not set
-	echo "Hello, " . htmlspecialchars($name) . "!"; // Output: Hello, Alice!
-
-* Hur kontakta API?
-	* Kodmässigt php - PÅ GOD VÄG
-		
-		require 'vendor/autoload.php';
-
-		use GuzzleHttp\Client;
-
-		$client = new Client();
-		$response = $client->request('GET', 'https://api.example.com/data', [
-			'query' => ['param1' => 'value1', 'param2' => 'value2'] -> FORTSÄTT MED PARAMETRAR
-		]);
-
-		$data = json_decode($response->getBody(), true); // Decode JSON response
-		print_r($data);
-
-	* Vilken adress till faktiska bibliotekets api-ingång?
-
-
-API:er att testa emot:
-https://petstore.swagger.io/
-https://gorest.co.in/
+Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 */
 
-// === CHATGTPs LÖSNING ===
-//
-// FORTSÄTT MED: Se till att svaren hanteras på rätt sätt för att  hitta items och skapa xml från dem. Kan vara så att vi letar med rätt siffra men fortfarande inte hittar poster med items. fortsätt jämföra med api:et.
-// ATT GÖRA: Rätta queryn. Blir mycket riktigt fel svar. Får de 10 första posterna från offset 0, och får andra poster om jag ändrar offset. Har skickat fråga till Ines,
-// och hon skickar troligen vidare till supporten.
-// Får samma 10 svar som jag fick med sökning på annat bibID och ISBN.
-// Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
-// Felmeddelande som ges: Array ( [Bib_ID] => 9v8xbqxk785qpxhh [isbn] => 9789177754657 ) SÄNDER HEADER: Content-Type: application/x-www-form-urlencoded SÄNDER HEADER: Accept: application/json SÄNDER HEADER: Authorization: Basic bnhwNHlIUE00Nm4vMTVVdDdkdjR6WTFRVVRrcDpJdm9yeUxlbW9uIzE2OQ== === AUTH RESPONSE === {"access_token":"0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa","token_type":"bearer","expires_in":3600} === SÖKER MED bib_id === {"target":{"record":{"type":"bib"}},"expr":{"op":"equals","args":[{"marcTag":"029","subfield":"a"},"9v8xbqxk785qpxhh"]}} === TOKEN I getSierraBibIdsFromIdentifiers === 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa === queryURL === https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/query?limit=10&offset=0 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Content-Type: application/json SÄNDER HEADER: Accept: application/json == RESPONSE FOR bib_id == {"total":10,"start":0,"entries":[{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000025"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000049"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000073"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000110"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000131"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000139"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000213"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000268"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000274"},{"link":"https://gotlib.goteborg.se/iii/sierra-api/v6/bibs/1000302"}]} Hämtar items för Sierra Bib_ID: 1000025 SÄNDER HEADER: Authorization: Bearer 0fo_BZlT9sDa56SMtEmsWqvjo1so4naMP8c6RQsLTSPtoeR8JFIxaSS_9lyQzzakQ_ZNKdXR8tLa2pVxQ2pzA55PVjqmYkVeyCEnNT-GFfQBvQkCbf29ZpUiax23Ecfa SÄNDER HEADER: Accept: application/json Fel: JSON saknar 'entries' eller är inte en array.
 
 // === KONFIGURATION ===
 $configPath = __DIR__ . '/config/config.json';
@@ -200,35 +136,35 @@ function authenticateAndGetToken($authUrl, $clientKey, $clientSecret): ?string {
 
 
 // === GET-FUNKTION: HÄMTA DATA ===
-function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
-    if (!empty($params)) {
-		$queryString = http_build_query($params);
-		$dataUrl .= (strpos($dataUrl, '?') === false ? '?' : '&') . $queryString;
-	}
+// function fetchDataWithToken($dataUrl, $token, array $params = []): ?string {
+//     if (!empty($params)) {
+// 		$queryString = http_build_query($params);
+// 		$dataUrl .= (strpos($dataUrl, '?') === false ? '?' : '&') . $queryString;
+// 	}
 
-    echo "=== SENT QUERY STRING ===\n";
-    echo $dataUrl . "\n";
+//     echo "=== SENT QUERY STRING ===\n";
+//     echo $dataUrl . "\n";
 
-	$headers = [
-        'Authorization' => 'Bearer ' . $token,
-        'Accept' => 'application/json'
-    ];
-    echo "=== TOKEN USED ===\n";
-    echo $token . "\n";
+// 	$headers = [
+//         'Authorization' => 'Bearer ' . $token,
+//         'Accept' => 'application/json'
+//     ];
+//     echo "=== TOKEN USED ===\n";
+//     echo $token . "\n";
 
-    $result = makeHttpRequest($dataUrl, 'GET', $headers);
+//     $result = makeHttpRequest($dataUrl, 'GET', $headers);
 
-    echo "=== DATA RESPONSE ===\n";
-    echo $result['response'] . "\n";
+//     echo "=== DATA RESPONSE ===\n";
+//     echo $result['response'] . "\n";
 
-    if ($result['status'] !== 200) {
-        echo "Datahämtning misslyckades. Status: {$result['status']}\n";
-        echo "Fel: {$result['error']}\n";
-        return null;
-    }
-    return $result['response'];
-    // Vill du göra något mer med datan? Lägg till det här!
-}
+//     if ($result['status'] !== 200) {
+//         echo "Datahämtning misslyckades. Status: {$result['status']}\n";
+//         echo "Fel: {$result['error']}\n";
+//         return null;
+//     }
+//     return $result['response'];
+//     // Vill du göra något mer med datan? Lägg till det här!
+// }
 
 function getSierraBibIdsFromIdentifiers(string $queryUrl, int $limit, int $offset, array $identifiers, string $token): ?array {
     $queryUrlWithParams = $queryUrl . '?limit=' . $limit . '&offset=' . $offset;
@@ -393,10 +329,6 @@ function fetchItemsForBibId(string $baseUrl, string $bibId, string $token): ?arr
 
 // === HUVUDFLÖDE ===
 
-// $parameters = [	'limit' => '10',
-//  				'createdDate' => '2025-02-07',
-//  				'deleted' => 'false',
-//                 'suppressed' => 'false'];
 $token = authenticateAndGetToken($baseUrl . $tokenEndpoint, $clientKey, $clientSecret);
 
 if ($token) {

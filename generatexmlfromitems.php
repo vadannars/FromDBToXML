@@ -82,7 +82,7 @@ function generateXmlFromData(array $data): void {
             return ''; 
         },
 
-        'Loan_Policy' => ['path' => ['location', 'name']],
+        'Loan_Policy' => 'placeholder',//['path' => ['location', 'name']],
 
         'UniqueItemId' => 'placeholder'
     ];
