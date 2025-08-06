@@ -10,12 +10,18 @@ i terminalen:
 apache2ctl start
 
 === FORTSÄTT MED ===
-    * Ta reda på, och justera om det jag har nu kommer att fungera när det anropas som libris vill göra
-    * Rensa loggutskrifter och annat wip-grejs
-    * Lägg in läsbara felmeddelanden för kommande generationer
-    * Snygga till kod och kommentarer
-    * Strukturera om koden så den är mer robust och modulär
+    * Ta reda på, och justera om det jag har nu kommer att fungera när det anropas som libris vill göra - CHECK
+    * Rensa loggutskrifter och annat wip-grejs //TODO
+    * Lägg in läsbara felmeddelanden för kommande generationer //TODO
+    * Snygga till kod och kommentarer //TODO
+    * Strukturera om koden så den är mer robust och modulär //TODO
     * Ta reda på vad som behövs för att lägga upp den i webmaster
+        //TODO
+        - MÅSTE HA EN SERVER ATT LAGRA KODEN PÅ
+        - Kolla med Valle eller någon annan om hur vi ordnar det.
+        - Ordna så att koden är redo för att läggas i en server och justerad för den scopen
+        - Skriv JS-fil som ska läggas i live web server och koppla till php-koden
+        - Testa att lägga php på en gratis serverlösning medans vi väntar på den riktiga, testa både via en js-lösning i codespaces och via live web server.
     * Skriv en teknisk beskrivning av utvecklingen så att kommande justeringar blir lätta att göra
 
 Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657

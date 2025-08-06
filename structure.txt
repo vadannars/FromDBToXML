@@ -1,0 +1,26 @@
+.
+├── apisvarMarcId.txt
+├── CODE_OF_CONDUCT.md
+├── composer.json
+├── composer.lock
+├── config
+│   └── config.json
+├── generatexmlfromitems.php
+├── generatexml.php
+├── index.php
+├── json_to_array.php
+├── LICENSE
+├── loanstatuslist.xml
+├── README.md
+├── SECURITY.md
+├── structure.txt
+├── testresponse.json
+└── vendor
+    ├── autoload.php
+    ├── composer
+    ├── guzzlehttp
+    ├── psr
+    ├── ralouphie
+    └── symfony
+
+7 directories, 16 files
