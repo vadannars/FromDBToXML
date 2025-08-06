@@ -1,2 +1,19 @@
 {
+    "name": "stadsbiblioteket/libris_loanstatus",
+    "description": "En api-klient mot Sierras API som hämtar lånesatus hos exemplar utifrån librisid, ISBN eller ONR.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Stadsbiblioteket\\LibrisLoanstatus\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Martin",
+            "email": "126289524+vadannars@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
 }

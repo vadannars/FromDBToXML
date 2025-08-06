@@ -1,0 +1,10 @@
+# public/.htaccess
+
+DirectoryIndex loanstatus.php
+
+RewriteEngine On
+
+# Omdirigera allt till loanstatus.php om filen inte finns
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ loanstatus.php [QSA,L]
