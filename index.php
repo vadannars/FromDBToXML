@@ -28,7 +28,7 @@ Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?B
 */
 
 
-// === KONFIGURATION ===
+// === KONFIGURATION === 
 $configPath = __DIR__ . '/config/config.json';
 $config = json_decode(file_get_contents($configPath),true);
 if (!$config) {
