@@ -7,7 +7,7 @@ gotlib.goteborg.se/iii/sierra-api/
 
 FÖR ATT TESTKÖRA:
 i terminalen:
-apache2ctl start
+ $ php -S 0.0.0.0:8080 -t public
 
 === FORTSÄTT MED ===
     * Ta reda på, och justera om det jag har nu kommer att fungera när det anropas som libris vill göra - CHECK
@@ -24,7 +24,7 @@ apache2ctl start
         - Testa att lägga php på en gratis serverlösning medans vi väntar på den riktiga, testa både via en js-lösning i codespaces och via live web server.
     * Skriv en teknisk beskrivning av utvecklingen så att kommande justeringar blir lätta att göra
 
-Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
+Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/loanstatus.php?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -41,6 +41,7 @@ try {
     $identifiers = [
         'bib_id' => $normalizedGet['bib_id'] ?? null,
         'isbn'   => $normalizedGet['isbn'] ?? null,
+        'issn'   => $normalizedGet['issn'] ?? null,
         'onr'    => $normalizedGet['onr'] ?? null
     ];
 

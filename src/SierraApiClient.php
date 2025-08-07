@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace App;
 
 class SierraApiClient {
@@ -6,6 +8,8 @@ class SierraApiClient {
     private string $apiKey;
     private string $apiSecret;
     private ?string $token = null;
+
+    private const ITEM_FIELDS = 'location,callNumber,status';
 
     public function __construct(string $baseUrl, string $apiKey, string $apiSecret) {
         $this->baseUrl = rtrim($baseUrl, '/');
@@ -72,6 +76,8 @@ class SierraApiClient {
     }
 
     /**
+     * Hämtar exemplar för en bib-post.
+     * 
      * @throws \RuntimeException
      */
     public function fetchItems(string $bibId): ?array {
@@ -80,7 +86,7 @@ class SierraApiClient {
         }
 
         $params = http_build_query([
-            'fields' => 'location,callNumber,status',
+            'fields' => self::ITEM_FIELDS,
             'deleted' => 'false',
             'suppressed' => 'false',
             'bibIds' => $bibId
@@ -102,36 +108,96 @@ class SierraApiClient {
         return $data['entries'] ?? null;
     }
 
+    /**
+     * Bygg sökfråga utifrån tillgängliga identifierare.
+     *
+     * @param array<string, string|null> $identifiers
+     * @return array<string, mixed>|null
+     */
+
     private function buildCombinedQuery(array $identifiers): ?array {
+        $queryParts = [];
+
+        // Gemensam del i alla queries
+        $record = ['type' => 'bib'];
+
+        /**
+         * ✅ Förslag 1 & 4:
+         * Modulär array med alla potentiella fält.
+         * @var array<string, array{tag?: string, marcTag?: string, value: ?string}>
+         */
         $fields = [
             'bib_id' => ['tag' => 'j',        'value' => $identifiers['bib_id'] ?? null],
+            'issn'   => ['marcTag' => '022',  'value' => $identifiers['issn'] ?? null],
             'isbn'   => ['tag' => 'i',        'value' => $identifiers['isbn'] ?? null],
-            'onr'    => ['marcTag' => '035',  'value' => $identifiers['onr'] ?? null]
+            'onr'    => ['marcTag' => '035',  'value' => $identifiers['onr'] ?? null],
         ];
 
-        $queryParts = [];
-        foreach ($fields as $field) {
-            if (empty($field['value'])) continue;
+        // Lägg alltid till bib_id om det finns
+        if (!empty($fields['bib_id']['value'])) {
+            $queryParts[] = $this->makeFieldQuery(
+                $record,
+                ['tag' => $fields['bib_id']['tag']],
+                $fields['bib_id']['value']
+            );
+        }
 
+        // ✅ Förslag 2: välj bara EN av ISSN eller ISBN
+        $priorityField = $this->pickFirstAvailable($fields, ['issn', 'isbn']);
+        if ($priorityField !== null) {
             if (!empty($queryParts)) {
                 $queryParts[] = 'or';
             }
 
-            $targetField = isset($field['tag']) ? ['tag' => $field['tag']] : ['marcTag' => $field['marcTag']];
+            $fieldKey = isset($priorityField['tag'])
+                ? ['tag' => $priorityField['tag']]
+                : ['marcTag' => $priorityField['marcTag']];
 
-            $queryParts[] = [
-                'target' => [
-                    'record' => ['type' => 'bib'],
-                    'field'  => $targetField
-                ],
-                'expr' => [
-                    'op' => 'equals',
-                    'operands' => [$field['value'], '']
-                ]
-            ];
+            $queryParts[] = $this->makeFieldQuery($record, $fieldKey, $priorityField['value']);
+        }
+
+        // Lägg till onr om det finns
+        if (!empty($fields['onr']['value'])) {
+            if (!empty($queryParts)) {
+                $queryParts[] = 'or';
+            }
+
+            $queryParts[] = $this->makeFieldQuery(
+                $record,
+                ['marcTag' => $fields['onr']['marcTag']],
+                $fields['onr']['value']
+            );
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
+    }
+
+    private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
+        return [
+            'target' => [
+                'record' => $record,
+                'field'  => $fieldKey
+            ],
+            'expr' => [
+                'op' => 'equals',
+                'operands' => [$value, '']
+            ]
+        ];
+    }
+
+    // Hjälpfunktion för att välja första matchande fält från prioriterad lista
+    /**
+     * @param array<string, array{value: ?string}> $fields
+     * @param string[] $preferredKeys
+     * @return array{tag?: string, marcTag?: string, value: string}|null
+     */
+    private function pickFirstAvailable(array $fields, array $preferredKeys): ?array {
+        foreach ($preferredKeys as $key) {
+            if (!empty($fields[$key]['value'])) {
+                return $fields[$key];
+            }
+        }
+        return null;
     }
 
     private function extractBibIdsFromResponse(string $json): ?array {
