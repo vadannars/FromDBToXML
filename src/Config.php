@@ -38,5 +38,9 @@ class Config {
         return $this->get('api_secret');
     }
 
-    // Fler getters efter behov...
+    public function getLogLevel(): string {
+        return strtolower($this->get('log_level', 'debug'));
+    }
+
+
 }

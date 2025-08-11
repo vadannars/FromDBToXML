@@ -45,6 +45,8 @@ class SierraApiClient {
     }
 
     /**
+     * Skickar JSON-query.
+     * 
      * @throws \RuntimeException
      */
     public function queryBibs(array $identifiers, int $limit = 10, int $offset = 0): ?array {
@@ -122,8 +124,7 @@ class SierraApiClient {
         $record = ['type' => 'bib'];
 
         /**
-         * ✅ Förslag 1 & 4:
-         * Modulär array med alla potentiella fält.
+         * Array med alla potentiella fält.
          * @var array<string, array{tag?: string, marcTag?: string, value: ?string}>
          */
         $fields = [
@@ -133,7 +134,6 @@ class SierraApiClient {
             'onr'    => ['marcTag' => '035',  'value' => $identifiers['onr'] ?? null],
         ];
 
-        // Lägg alltid till bib_id om det finns
         if (!empty($fields['bib_id']['value'])) {
             $queryParts[] = $this->makeFieldQuery(
                 $record,
@@ -142,7 +142,6 @@ class SierraApiClient {
             );
         }
 
-        // ✅ Förslag 2: välj bara EN av ISSN eller ISBN
         $priorityField = $this->pickFirstAvailable($fields, ['issn', 'isbn']);
         if ($priorityField !== null) {
             if (!empty($queryParts)) {
@@ -156,7 +155,6 @@ class SierraApiClient {
             $queryParts[] = $this->makeFieldQuery($record, $fieldKey, $priorityField['value']);
         }
 
-        // Lägg till onr om det finns
         if (!empty($fields['onr']['value'])) {
             if (!empty($queryParts)) {
                 $queryParts[] = 'or';

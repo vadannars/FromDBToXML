@@ -18,7 +18,7 @@ i terminalen:
     * Ta reda på vad som behövs för att lägga upp den i webmaster
         //TODO
         - MÅSTE HA EN SERVER ATT LAGRA KODEN PÅ
-        - Kolla med Valle eller någon annan om hur vi ordnar det.
+        - Kolla med Valle eller någon annan om hur vi ordnar det. MAIL SKICKAT TILL VALLE
         - Ordna så att koden är redo för att läggas i en server och justerad för den scopen
         - Skriv JS-fil som ska läggas i live web server och koppla till php-koden
         - Testa att lägga php på en gratis serverlösning medans vi väntar på den riktiga, testa både via en js-lösning i codespaces och via live web server.
@@ -32,9 +32,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Config;
 use App\SierraApiClient;
 use App\XmlGenerator;
+use App\LoggerFactory;
+use Monolog\Logger;
 
 try {
     $config = new Config(__DIR__ . '/../config/config.json');
+
+    $logger = LoggerFactory::createLogger($config);
 
     $normalizedGet = array_change_key_case($_GET, CASE_LOWER);
 
@@ -48,6 +52,8 @@ try {
     if (empty(array_filter($identifiers))) {
         throw new \InvalidArgumentException("Ingen parameter angiven i anropet.");
     }
+
+    $logger->info('API-anrop mottaget', ['params' => $identifiers]);
 
     $client = new SierraApiClient($config->getApiBaseUrl(), $config->getApiKey(), $config->getApiSecret());
     $client->authenticate();
@@ -78,9 +84,15 @@ try {
     echo $xml;
 
 } catch (\Exception $e) {
-    // Logga eventuellt felet
-    header('Content-Type: application/json; charset=utf-8');
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
-    exit;
+    if (isset($logger)) {
+        $logger->error('Fel i loanstatus.php', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
 }
+
+header('Content-Type: application/json; charset=utf-8');
+http_response_code(500);
+echo json_encode(['error' => 'Ett internt serverfel inträffade.']);
+exit;
