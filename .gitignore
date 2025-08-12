@@ -330,3 +330,5 @@ ASALocalRun/
 .mfractor/
 
 /vendor/
+composer.lock
+.env

@@ -29,6 +29,7 @@ Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/lo
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Dotenv\Dotenv;
 use App\Config;
 use App\SierraApiClient;
 use App\XmlGenerator;
@@ -36,10 +37,22 @@ use App\LoggerFactory;
 use Monolog\Logger;
 
 try {
-    $config = new Config(__DIR__ . '/../config/config.json');
 
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+    $dotenv->required([
+        'API_KEY',
+        'API_SECRET',
+        'API_BASE_URL',
+        'TOKEN_ENDPOINT',
+        'QUERY_ENDPOINT',
+        'BIBS_ENDPOINT',
+        'ITEMS_ENDPOINT',
+        'ACTIVE',
+        'LOG_LEVEL'])->notEmpty();
+
+    $config = new Config();
     $logger = LoggerFactory::createLogger($config);
-
     $normalizedGet = array_change_key_case($_GET, CASE_LOWER);
 
     $identifiers = [
@@ -82,6 +95,7 @@ try {
 
     header('Content-Type: application/xml; charset=utf-8');
     echo $xml;
+    exit;
 
 } catch (\Exception $e) {
     if (isset($logger)) {
@@ -90,9 +104,10 @@ try {
             'trace' => $e->getTraceAsString()
         ]);
     }
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['error' => 'Ett internt serverfel inträffade.']);
+    exit;
 }
 
-header('Content-Type: application/json; charset=utf-8');
-http_response_code(500);
-echo json_encode(['error' => 'Ett internt serverfel inträffade.']);
-exit;
+

@@ -16,6 +16,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "monolog/monolog": "^3.9"
+        "monolog/monolog": "^3.9",
+        "vlucas/phpdotenv": "^5.6"
     }
 }

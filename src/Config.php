@@ -1,25 +1,25 @@
 <?php
 namespace App;
 
+
 class Config {
     private array $data;
 
-    public function __construct(string $filePath) {
-        $json = file_get_contents($filePath);
-        if ($json === false) {
-            throw new \RuntimeException("Kunde inte läsa konfigurationsfilen.");
-        }
-
-        $data = json_decode($json, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException("JSON-fel i konfigurationsfilen: " . json_last_error_msg());
-        }
-
-        if (!($data['active'] ?? false)) {
-            throw new \RuntimeException("Applikationen är inaktiverad i konfigurationen.");
-        }
-
-        $this->data = $data;
+    public function __construct() {        
+            $this->data = [
+                'api_key'           => $_ENV['API_KEY'],
+                'api_secret'        => $_ENV['API_SECRET'],
+                'api_base_url'      => $_ENV['API_BASE_URL'],
+                'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'],
+                'query_endpoint'    => $_ENV['QUERY_ENDPOINT'],
+                'bibs_endpoint'     => $_ENV['BIBS_ENDPOINT'],
+                'items_endpoint'    => $_ENV['ITEMS_ENDPOINT'],
+                'query_parameters' => [
+                    'offset' => (int)($_ENV['QUERY_OFFSET'] ?? 0),
+                    'limit' => (int)($_ENV['QUERY_LIMIT'] ?? 10)],
+                'active'            => $_ENV['ACTIVE'],
+                'log_level'         => $_ENV['LOG_LEVEL']
+            ];
     }
 
     public function get(string $key, $default = null) {
