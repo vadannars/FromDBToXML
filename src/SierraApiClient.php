@@ -3,18 +3,23 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\HttpClientInterface;
+
 class SierraApiClient {
     private string $baseUrl;
     private string $apiKey;
     private string $apiSecret;
     private ?string $token = null;
 
+    private HttpClientInterface $httpClient;
+
     private const ITEM_FIELDS = 'location,callNumber,status';
 
-    public function __construct(string $baseUrl, string $apiKey, string $apiSecret) {
+    public function __construct(string $baseUrl, string $apiKey, string $apiSecret, HttpClientInterface $httpClient) {
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
+        $this->httpClient = $httpClient;
     }
 
     /**
@@ -31,7 +36,7 @@ class SierraApiClient {
         ];
         $body = "grant_type=client_credentials";
 
-        $response = $this->makeHttpRequest($url, 'POST', $headers, $body);
+        $response = $this->httpClient->request($url, 'POST', $headers, $body);
 
         if ($response['status'] !== 200) {
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
@@ -68,7 +73,7 @@ class SierraApiClient {
             'Accept' => 'application/json'
         ];
 
-        $response = $this->makeHttpRequest($url, 'POST', $headers, $jsonQuery);
+        $response = $this->httpClient->request($url, 'POST', $headers, $jsonQuery);
 
         if ($response['status'] !== 200) {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$response['status']}");
@@ -100,7 +105,7 @@ class SierraApiClient {
             'Accept' => 'application/json'
         ];
 
-        $response = $this->makeHttpRequest($url, 'GET', $headers);
+        $response = $this->httpClient->request($url, 'GET', $headers);
 
         if ($response['status'] !== 200) {
             throw new \RuntimeException("Kunde inte hämta items: HTTP {$response['status']}");
@@ -220,35 +225,4 @@ class SierraApiClient {
         return $id !== '' ? $id : null;
     }
 
-    /**
-     * Utför HTTP-anrop med cURL
-     *
-     * @return array ['status' => int, 'response' => string, 'error' => string]
-     */
-    private function makeHttpRequest(string $url, string $method = 'GET', array $headers = [], $body = null): array {
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
-
-        if (in_array(strtoupper($method), ['POST', 'PUT', 'PATCH']) && $body !== null) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        }
-
-        if (!empty($headers)) {
-            $formattedHeaders = [];
-            foreach ($headers as $key => $value) {
-                $formattedHeaders[] = "$key: $value";
-            }
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $formattedHeaders);
-        }
-
-        $response = curl_exec($ch);
-        $error = curl_error($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        return ['status' => $status, 'response' => $response, 'error' => $error];
-    }
 }

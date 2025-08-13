@@ -26,12 +26,14 @@ i terminalen:
 
 Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/loanstatus.php?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 */
+declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 use App\Config;
 use App\SierraApiClient;
+use App\GuzzleHttpClient;
 use App\XmlGenerator;
 use App\LoggerFactory;
 use Monolog\Logger;
@@ -48,6 +50,8 @@ try {
         'QUERY_ENDPOINT',
         'BIBS_ENDPOINT',
         'ITEMS_ENDPOINT',
+        'QUERY_OFFSET',
+        'QUERY_LIMIT',
         'ACTIVE',
         'LOG_LEVEL'])->notEmpty();
 
@@ -68,27 +72,33 @@ try {
 
     $logger->info('API-anrop mottaget', ['params' => $identifiers]);
 
-    $client = new SierraApiClient($config->getApiBaseUrl(), $config->getApiKey(), $config->getApiSecret());
-    $client->authenticate();
+    $httpClient = new GuzzleHttpClient();
+    $apiClient = new SierraApiClient(
+        $config->getApiBaseUrl(),
+        $config->getApiKey(),
+        $config->getApiSecret(),
+        $httpClient);
+    $apiClient->authenticate();
+    
+    $queryParams = $config->get('query_parameters');
+    $limit = $queryParams['limit'];
+    $offset = $queryParams['offset'];
 
-    $limit = (int)$config->get('query_parameters')['limit'] ?? 10;
-    $offset = (int)$config->get('query_parameters')['offset'] ?? 0;
-
-    $bibIds = $client->queryBibs($identifiers, $limit, $offset);
+    $bibIds = $apiClient->queryBibs($identifiers, $limit, $offset);
     if (empty($bibIds)) {
-        throw new \RuntimeException("Inga böcker hittades för de angivna parametrarna.");
+        throw new \RuntimeException("Inga media hittades för de angivna parametrarna.");
     }
 
     $allItems = [];
     foreach ($bibIds as $bibId) {
-        $items = $client->fetchItems($bibId);
+        $items = $apiClient->fetchItems($bibId);
         if ($items !== null) {
             $allItems = array_merge($allItems, $items);
         }
     }
 
     if (empty($allItems)) {
-        throw new \RuntimeException("Inga exemplar hittades för böckerna.");
+        throw new \RuntimeException("Inga exemplar hittades för mediet.");
     }
 
     $xml = XmlGenerator::generateXmlFromItems($allItems);
@@ -106,7 +116,7 @@ try {
     }
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(500);
-    echo json_encode(['error' => 'Ett internt serverfel inträffade.']);
+    echo json_encode(['error' => 'Ett internt serverfel inträffade. Vänligen kontrollera serverloggarna för mer information.']);
     exit;
 }
 

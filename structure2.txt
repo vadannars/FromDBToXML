@@ -19,20 +19,39 @@
 │   └── config.json
 ├── LICENSE
 ├── loanstatuslist.xml
+├── logs
+├── phpunit.xml
 ├── public
 │   └── loanstatus.php
 ├── README.md
 ├── SECURITY.md
 ├── src
 │   ├── Config.php
+│   ├── LoggerFactory.php
 │   ├── SierraApiClient.php
 │   └── XmlGenerator.php
 ├── structure2.txt
 ├── structure.txt
 ├── testresponse.json
+├── tests
+│   ├── SierraApiClientTest.php
+│   └── XmlGeneratorTest.php
 └── vendor
     ├── autoload.php
     ├── bin
-    └── composer
+    ├── composer
+    ├── graham-campbell
+    ├── monolog
+    ├── myclabs
+    ├── nikic
+    ├── phar-io
+    ├── phpoption
+    ├── phpunit
+    ├── psr
+    ├── sebastian
+    ├── staabm
+    ├── symfony
+    ├── theseer
+    └── vlucas
 
-7 directories, 28 files
+22 directories, 32 files
