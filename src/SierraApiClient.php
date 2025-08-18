@@ -10,6 +10,7 @@ class SierraApiClient {
     private string $apiKey;
     private string $apiSecret;
     private ?string $token = null;
+    private ?int $expiresAt;
 
     private HttpClientInterface $httpClient;
 
@@ -23,11 +24,34 @@ class SierraApiClient {
     }
 
     /**
+     * Hämtar en giltig token. Om den befintliga token är ogiltig eller saknas, hämtas en ny.
+     *
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function getToken(): string {
+        // Kontrollera om en giltig token redan finns.
+        // Vi tar bort 10 sekunder från utgångstiden för att vara på den säkra sidan.
+        if ($this->token !== null && $this->expiresAt !== null && time() < ($this->expiresAt - 10)) {
+            return $this->token;
+        }
+
+        // Om token saknas eller har gått ut, hämta en ny.
+        $this->authenticate();
+
+        if ($this->token === null) {
+            throw new \RuntimeException("Kunde inte hämta en giltig API-token.");
+        }
+
+        return $this->token;
+    }
+
+    /**
      * Autentisera och hämta token.
      *
      * @throws \RuntimeException
      */
-    public function authenticate(): void {
+    private function authenticate(): void {
         $url = $this->baseUrl . '/token';
         $headers = [
             'Content-Type' => 'application/x-www-form-urlencoded',
@@ -43,10 +67,11 @@ class SierraApiClient {
         }
 
         $data = json_decode($response['response'], true);
-        if (!isset($data['access_token'])) {
+        if (!isset($data['access_token']) || !isset($data['expires_in'])) {
             throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
         $this->token = $data['access_token'];
+        $this->expiresAt = time() + (int)$data['expires_in'];
     }
 
     /**
@@ -55,9 +80,7 @@ class SierraApiClient {
      * @throws \RuntimeException
      */
     public function queryBibs(array $identifiers, int $limit = 10, int $offset = 0): ?array {
-        if (!$this->token) {
-            throw new \RuntimeException("Saknar giltig token, autentisera först.");
-        }
+        $token = $this->getToken();
 
         $query = $this->buildCombinedQuery($identifiers);
         if ($query === null) {
@@ -68,7 +91,7 @@ class SierraApiClient {
         $jsonQuery = json_encode($query, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $headers = [
-            'Authorization' => 'Bearer ' . $this->token,
+            'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'
         ];
@@ -88,9 +111,7 @@ class SierraApiClient {
      * @throws \RuntimeException
      */
     public function fetchItems(string $bibId): ?array {
-        if (!$this->token) {
-            throw new \RuntimeException("Saknar giltig token, autentisera först.");
-        }
+        $token = $this->getToken();
 
         $params = http_build_query([
             'fields' => self::ITEM_FIELDS,
@@ -101,7 +122,7 @@ class SierraApiClient {
 
         $url = $this->baseUrl . '/items/?' . $params;
         $headers = [
-            'Authorization' => 'Bearer ' . $this->token,
+            'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ];
 
