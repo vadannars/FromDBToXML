@@ -88,7 +88,6 @@ try {
         $config->getApiKey(),
         $config->getApiSecret(),
         $httpClient);
-    $apiClient->authenticate();
     
     $queryParams = $config->get('query_parameters');
     $limit = $queryParams['limit'];
