@@ -20,6 +20,7 @@
 ├── LICENSE
 ├── loanstatuslist.xml
 ├── logs
+│   └── app-2025-08-14.log
 ├── phpunit.xml
 ├── public
 │   └── loanstatus.php
@@ -27,6 +28,9 @@
 ├── SECURITY.md
 ├── src
 │   ├── Config.php
+│   ├── CurlHttpClient.php
+│   ├── GuzzleHttpClient.php
+│   ├── HttpClientInterface.php
 │   ├── LoggerFactory.php
 │   ├── SierraApiClient.php
 │   └── XmlGenerator.php
@@ -41,6 +45,7 @@
     ├── bin
     ├── composer
     ├── graham-campbell
+    ├── guzzlehttp
     ├── monolog
     ├── myclabs
     ├── nikic
@@ -48,10 +53,11 @@
     ├── phpoption
     ├── phpunit
     ├── psr
+    ├── ralouphie
     ├── sebastian
     ├── staabm
     ├── symfony
     ├── theseer
     └── vlucas
 
-22 directories, 32 files
+24 directories, 36 files
