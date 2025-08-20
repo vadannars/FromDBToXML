@@ -1,6 +1,6 @@
 {
     "name": "stadsbiblioteket/libris_loanstatus",
-    "description": "En api-klient mot Sierras API som hämtar lånesatus hos exemplar utifrån librisid, ISBN eller ONR.",
+    "description": "En api-klient mot bibliotekssytemet Sierra som hämtar lånestatus hos exemplar utifrån librisid, ISBN, ISSN eller ONR.",
     "type": "library",
     "license": "MIT",
     "autoload": {

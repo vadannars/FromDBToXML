@@ -28,7 +28,7 @@ Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/lo
 */
 declare(strict_types=1);
 
-header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Origin: *'); //TODO Byt ut till slutgiltiga sierradomänen eller lägg till en variabel i .env där den andressen kan ändras.
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
