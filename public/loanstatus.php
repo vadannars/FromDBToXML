@@ -28,16 +28,6 @@ Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/lo
 */
 declare(strict_types=1);
 
-header('Access-Control-Allow-Origin: *'); //TODO Byt ut till slutgiltiga sierradomänen eller lägg till en variabel i .env där den andressen kan ändras.
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Hantera preflight-anrop. Webbläsare skickar ett OPTIONS-anrop innan ett POST-anrop.
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
@@ -55,6 +45,7 @@ try {
     $dotenv->required([
         'API_KEY',
         'API_SECRET',
+        'ALLOWED:ORIGINS',
         'API_BASE_URL',
         'TOKEN_ENDPOINT',
         'QUERY_ENDPOINT',
@@ -66,6 +57,18 @@ try {
         'LOG_LEVEL'])->notEmpty();
 
     $config = new Config();
+    $allowed_origins_string = $config->getAllowedOrigins();
+    $allowed_origins = explode(',', $allowed_origins_string);
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+    if (in_array($origin, $allowed_origins)) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type');
+    } else {
+        throw new \Exception("Origin not allowed.");
+    }
+
     $logger = LoggerFactory::createLogger($config);
     $normalizedGet = array_change_key_case($_GET, CASE_LOWER);
 

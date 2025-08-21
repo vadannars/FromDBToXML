@@ -9,6 +9,7 @@ class Config {
             $this->data = [
                 'api_key'           => $_ENV['API_KEY'],
                 'api_secret'        => $_ENV['API_SECRET'],
+                'allowed_origins'   => $_ENV['ALLOWED_ORIGINS'],
                 'api_base_url'      => $_ENV['API_BASE_URL'],
                 'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'],
                 'query_endpoint'    => $_ENV['QUERY_ENDPOINT'],
@@ -26,6 +27,9 @@ class Config {
         return $this->data[$key] ?? $default;
     }
 
+    public function getAllowedOrigins(): string {
+        return $this->get('allowed_origins', '');
+    }
     public function getApiBaseUrl(): string {
         return rtrim($this->get('api_base_url'), '/');
     }
@@ -41,6 +45,4 @@ class Config {
     public function getLogLevel(): string {
         return strtolower($this->get('log_level', 'debug'));
     }
-
-
 }
