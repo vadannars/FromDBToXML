@@ -45,23 +45,20 @@ try {
     if (file_exists(__DIR__ . '/../.env')) {
         $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
         $dotenv->load();
-        $dotenv->required([
-            'API_KEY',
-            'API_SECRET',
-            'ALLOWED:ORIGINS',
-            'API_BASE_URL',
-            'TOKEN_ENDPOINT',
-            'QUERY_ENDPOINT',
-            'BIBS_ENDPOINT',
-            'ITEMS_ENDPOINT',
-            'QUERY_OFFSET',
-            'QUERY_LIMIT',
-            'ACTIVE',
-            'LOG_LEVEL',
-            'LOG_DESTINATION'])->notEmpty();
     }
 
     $config = new Config();
+
+    if (!$config->getActive()) {
+        throw new \Exception("Applikationen är inaktiverad.");
+    }
+
+    if (empty($config->getApiKey()) ||
+        empty($config->getApiSecret()) ||
+        empty($config->getApiBaseUrl())){
+            throw new \Exception("Viktiga API-nycklar saknas. Kontrollera konfigurationen.");
+    }
+
     $allowed_origins_string = $config->getAllowedOrigins();
     $allowed_origins = explode(',', $allowed_origins_string);
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';

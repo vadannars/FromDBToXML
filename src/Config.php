@@ -21,7 +21,7 @@ class Config {
             'query_parameters' => [
                 'offset' => (int)($_ENV['QUERY_OFFSET'] ?? 0),
                 'limit' => (int)($_ENV['QUERY_LIMIT'] ?? 10)],
-            'active'            => $_ENV['ACTIVE'] ?? false,
+            'active'            => filter_var($_ENV['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
             'log_level'         => $_ENV['LOG_LEVEL'] ?? 'debug',
             'log_destination'   => $_ENV['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
         ];
@@ -52,5 +52,9 @@ class Config {
 
     public function getLogDestination(): string {
         return strtolower($this->get('log_destination'));
+    }
+
+    public function getActive(): bool {
+        return $this->get('active');
     }
 }
