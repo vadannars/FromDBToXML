@@ -10,8 +10,8 @@ class Config {
 
     public function __construct() {        
         $this->data = [
-            'api_key'           => $_ENV['API_KEY'] ?? null,
-            'api_secret'        => $_ENV['API_SECRET'] ?? null,
+            'api_key'           => $_ENV['API_KEY'] ?? '',
+            'api_secret'        => $_ENV['API_SECRET'] ?? '',
             'allowed_origins'   => $_ENV['ALLOWED_ORIGINS'] ?? '',
             'api_base_url'      => $_ENV['API_BASE_URL'] ?? '',
             'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'] ?? '',
