@@ -42,12 +42,7 @@ use App\LoggerFactory;
 use Monolog\Logger;
 
 try {
-    if (file_exists(__DIR__ . '/../.env')) {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-        $dotenv->load();
-    }
-
-    $config = new Config();
+    $config = new Config(__DIR__ . '/..');
 
     if (!$config->getActive()) {
         throw new \Exception("Applikationen är inaktiverad.");
