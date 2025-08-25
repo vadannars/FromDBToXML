@@ -1,26 +1,30 @@
 <?php
 namespace App;
 
+use Dotenv\Dotenv;
+
+use function GuzzleHttp\debug_resource;
 
 class Config {
     private array $data;
 
     public function __construct() {        
-            $this->data = [
-                'api_key'           => $_ENV['API_KEY'],
-                'api_secret'        => $_ENV['API_SECRET'],
-                'allowed_origins'   => $_ENV['ALLOWED_ORIGINS'],
-                'api_base_url'      => $_ENV['API_BASE_URL'],
-                'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'],
-                'query_endpoint'    => $_ENV['QUERY_ENDPOINT'],
-                'bibs_endpoint'     => $_ENV['BIBS_ENDPOINT'],
-                'items_endpoint'    => $_ENV['ITEMS_ENDPOINT'],
-                'query_parameters' => [
-                    'offset' => (int)($_ENV['QUERY_OFFSET'] ?? 0),
-                    'limit' => (int)($_ENV['QUERY_LIMIT'] ?? 10)],
-                'active'            => $_ENV['ACTIVE'],
-                'log_level'         => $_ENV['LOG_LEVEL']
-            ];
+        $this->data = [
+            'api_key'           => $_ENV['API_KEY'] ?? null,
+            'api_secret'        => $_ENV['API_SECRET'] ?? null,
+            'allowed_origins'   => $_ENV['ALLOWED_ORIGINS'] ?? '',
+            'api_base_url'      => $_ENV['API_BASE_URL'] ?? '',
+            'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'] ?? '',
+            'query_endpoint'    => $_ENV['QUERY_ENDPOINT'] ?? '',
+            'bibs_endpoint'     => $_ENV['BIBS_ENDPOINT'] ?? '',
+            'items_endpoint'    => $_ENV['ITEMS_ENDPOINT'] ?? '',
+            'query_parameters' => [
+                'offset' => (int)($_ENV['QUERY_OFFSET'] ?? 0),
+                'limit' => (int)($_ENV['QUERY_LIMIT'] ?? 10)],
+            'active'            => $_ENV['ACTIVE'] ?? false,
+            'log_level'         => $_ENV['LOG_LEVEL'] ?? 'debug',
+            'log_destination'   => $_ENV['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
+        ];
     }
 
     public function get(string $key, $default = null) {
@@ -44,5 +48,9 @@ class Config {
 
     public function getLogLevel(): string {
         return strtolower($this->get('log_level', 'debug'));
+    }
+
+    public function getLogDestination(): string {
+        return strtolower($this->get('log_destination'));
     }
 }
