@@ -10,7 +10,7 @@ class LoggerFactory
 {
     public static function createLogger(Config $config, string $name = 'app'): Logger
     {
-        $logPath = __DIR__ . '/../logs/app.log';
+        $logDestination = $config->getLogDestination();
 
         $levelMap = [
             'debug'     => Level::Debug,
@@ -27,7 +27,7 @@ class LoggerFactory
         $level = $levelMap[$configLevel] ?? Level::Debug;
 
 
-        $handler = new RotatingFileHandler($logPath, 7, $level);
+        $handler = new RotatingFileHandler($logDestination, 7, $level);
         $handler->setFormatter(new LineFormatter(null, null, true, true));
 
         $logger = new Logger($name);
