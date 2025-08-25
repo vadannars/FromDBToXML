@@ -5,6 +5,9 @@
 Adress till bibliotekets api:
 gotlib.goteborg.se/iii/sierra-api/
 
+CLEVER CLOUD:
+Adress: https://app-881532c0-e6ee-4503-8aae-0116c1a5d144.cleverapps.io/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
+
 FÖR ATT TESTKÖRA:
 i terminalen:
  $ php -S 0.0.0.0:8080 -t public
