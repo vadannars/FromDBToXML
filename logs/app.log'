@@ -1,0 +1,2 @@
+[2025-08-26T09:33:09.729697+00:00] app.ERROR: Fel i loanstatus.php {"message":"Ingen parameter angiven i anropet.","trace":"#0 {main}"} 
+[2025-08-26T09:38:02.003506+00:00] app.ERROR: Fel i loanstatus.php {"message":"Ingen parameter angiven i anropet.","trace":"#0 {main}"} 

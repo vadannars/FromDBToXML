@@ -29,6 +29,7 @@ i terminalen:
     * Skriv en teknisk beskrivning av utvecklingen så att kommande justeringar blir lätta att göra
 
 Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/loanstatus.php?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
+Debugg: https://turbo-goggles-7qq6475rg6p2x7x6-9000.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 */
 declare(strict_types=1);
 
@@ -57,12 +58,14 @@ try {
 
     $allowed_origins_string = $config->getAllowedOrigins();
     $allowed_origins = explode(',', $allowed_origins_string);
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
 
-    if (in_array($origin, $allowed_origins)) {
-        header('Access-Control-Allow-Origin: ' . $origin);
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
+    if ($origin === null || in_array($origin, $allowed_origins)) {
+        if ($origin !== null) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+        }
     } else {
         throw new \Exception("Origin not allowed.");
     }

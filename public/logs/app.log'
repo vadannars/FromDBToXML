@@ -1,0 +1,5 @@
+[2025-08-26T09:13:50.728128+00:00] app.ERROR: Fel i loanstatus.php {"message":"Ingen parameter angiven i anropet.","trace":"#0 {main}"} 
+[2025-08-26T09:54:52.897783+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-26T10:03:05.483837+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-26T10:06:37.496327+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-26T10:07:34.241264+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
