@@ -1,3 +1,4 @@
+composer.json:
 {
     "name": "stadsbiblioteket/libris_loanstatus",
     "description": "En api-klient mot bibliotekssytemet Sierra som hämtar lånestatus hos exemplar utifrån librisid, ISBN, ISSN eller ONR.",
@@ -25,3 +26,23 @@
         "phpunit/phpunit": "^11.5"
     }
 }
+
+apache.conf:
+Listen 8080
+
+DocumentRoot "/workspaces/FromDBToXML/public"
+<Directory "/workspaces/FromDBToXML/public">
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+DirectoryIndex loanstatus.php index.php index.html
+
+# Proxy PHP requests to PHP-FPM socket
+ProxyPassMatch "^/(.*\.php(/.*)?)$" "unix:/run/php/php8.1-fpm.sock|fcgi://localhost/workspaces/FromDBToXML/public"
+
+ErrorLog /dev/stderr
+CustomLog /dev/stdout combined
+
+Databasbehov: Inga behov
