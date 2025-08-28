@@ -23,7 +23,7 @@ i terminalen:
     * Ta reda på vad som behövs för att lägga upp den i webmaster
         //TODO
         - MÅSTE HA EN SERVER ATT LAGRA KODEN PÅ
-        - Kolla med Valle eller någon annan om hur vi ordnar det. MAIL SKICKAT TILL VALLE
+        - Kolla med Valle eller någon annan om hur vi ordnar det.  SPEC SKICKAD TILL INES OCH VIDAREBEF. T. IT
         - Ordna så att koden är redo för att läggas i en server och justerad för den scopen SAMARBETA MED IT
         - Skriv JS-fil som ska läggas i live web server och koppla till php-koden BEHÖVS EJ
         - Testa att lägga php på en gratis serverlösning medans vi väntar på den riktiga. KLART
