@@ -4,39 +4,39 @@ declare(strict_types=1);
 namespace App;
 
 use App\HttpClientInterface;
+use App\Config;
 
 class SierraApiClient {
     private string $baseUrl;
     private string $apiKey;
     private string $apiSecret;
+    private string $tokenEndpoint;
+    private string $queryEndpoint;
+    private array $queryParameters;
+    private array $queryFields;
+    private string $itemFields;
+
     private ?string $token = null;
     private ?int $expiresAt;
-
     private HttpClientInterface $httpClient;
 
-    private const ITEM_FIELDS = 'location,callNumber,status';
-
-    public function __construct(string $baseUrl, string $apiKey, string $apiSecret, HttpClientInterface $httpClient) {
-        $this->baseUrl = rtrim($baseUrl, '/');
-        $this->apiKey = $apiKey;
-        $this->apiSecret = $apiSecret;
+    public function __construct(Config $config, HttpClientInterface $httpClient) {
+        $this->baseUrl = rtrim($config->getApiBaseUrl(), '/');
+        $this->apiKey = $config->getApiKey();
+        $this->apiSecret = $config->getApiSecret();
+        $this->tokenEndpoint = $config->getTokenEndpoint();
+        $this->queryEndpoint = $config->getQueryEndpoint();
+        $this->queryParameters = $config->getQueryParameters();
+        $this->queryFields = $config->getQueryFields();
+        $this->itemFields = $config->getItemFields();
         $this->httpClient = $httpClient;
     }
 
-    /**
-     * Hämtar en giltig token. Om den befintliga token är ogiltig eller saknas, hämtas en ny.
-     *
-     * @return string
-     * @throws \RuntimeException
-     */
     private function getToken(): string {
-        // Kontrollera om en giltig token redan finns.
-        // Vi tar bort 10 sekunder från utgångstiden för att vara på den säkra sidan.
         if ($this->token !== null && $this->expiresAt !== null && time() < ($this->expiresAt - 10)) {
             return $this->token;
         }
 
-        // Om token saknas eller har gått ut, hämta en ny.
         $this->authenticate();
 
         if ($this->token === null) {
@@ -46,13 +46,8 @@ class SierraApiClient {
         return $this->token;
     }
 
-    /**
-     * Autentisera och hämta token.
-     *
-     * @throws \RuntimeException
-     */
     private function authenticate(): void {
-        $url = $this->baseUrl . '/token';
+        $url = $this->baseUrl . $this->tokenEndpoint;
         $headers = [
             'Content-Type' => 'application/x-www-form-urlencoded',
             'Accept' => 'application/json',
@@ -74,20 +69,22 @@ class SierraApiClient {
         $this->expiresAt = time() + (int)$data['expires_in'];
     }
 
-    /**
-     * Skickar JSON-query.
-     * 
-     * @throws \RuntimeException
-     */
-    public function queryBibs(array $identifiers, int $limit = 10, int $offset = 0): ?array {
+    public function queryBibs(array $identifiers): ?array {
         $token = $this->getToken();
-
         $query = $this->buildCombinedQuery($identifiers);
+
         if ($query === null) {
             return null;
         }
 
-        $url = $this->baseUrl . '/bibs/query?limit=' . $limit . '&offset=' . $offset;
+        $fields = "id,items{" . $this->itemFields . "}";
+        $params = http_build_query([
+            'limit' => $this->queryParameters['limit'],
+            'offset' => $this->queryParameters['offset'],
+            'fields' => $fields,
+        ]);
+
+        $url = $this->baseUrl . $this->queryEndpoint . '?' . $params;
         $jsonQuery = json_encode($query, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $headers = [
@@ -99,151 +96,78 @@ class SierraApiClient {
         $response = $this->httpClient->request($url, 'POST', $headers, $jsonQuery);
 
         if ($response['status'] !== 200) {
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$response['status']}");
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$response['status']} - {$response['error']}");
         }
 
-        return $this->extractBibIdsFromResponse($response['response']);
+        return $this->extractItemsFromBibsResponse($response['response']);
     }
-
-    /**
-     * Hämtar exemplar för en bib-post.
-     * 
-     * @throws \RuntimeException
-     */
-    public function fetchItems(string $bibId): ?array {
-        $token = $this->getToken();
-
-        $params = http_build_query([
-            'fields' => self::ITEM_FIELDS,
-            'deleted' => 'false',
-            'suppressed' => 'false',
-            'bibIds' => $bibId
-        ]);
-
-        $url = $this->baseUrl . '/items/?' . $params;
-        $headers = [
-            'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json'
-        ];
-
-        $response = $this->httpClient->request($url, 'GET', $headers);
-
-        if ($response['status'] !== 200) {
-            throw new \RuntimeException("Kunde inte hämta items: HTTP {$response['status']}");
-        }
-
-        $data = json_decode($response['response'], true);
-        return $data['entries'] ?? null;
-    }
-
-    /**
-     * Bygg sökfråga utifrån tillgängliga identifierare.
-     *
-     * @param array<string, string|null> $identifiers
-     * @return array<string, mixed>|null
-     */
 
     private function buildCombinedQuery(array $identifiers): ?array {
         $queryParts = [];
-
-        // Gemensam del i alla queries
-        $record = ['type' => 'bib'];
-
-        /**
-         * Array med alla potentiella fält.
-         * @var array<string, array{tag?: string, marcTag?: string, value: ?string}>
-         */
-        $fields = [
-            'bib_id' => ['tag' => 'j',        'value' => $identifiers['bib_id'] ?? null],
-            'issn'   => ['marcTag' => '022',  'value' => $identifiers['issn'] ?? null],
-            'isbn'   => ['tag' => 'i',        'value' => $identifiers['isbn'] ?? null],
-            'onr'    => ['marcTag' => '035',  'value' => $identifiers['onr'] ?? null],
-        ];
-
-        if (!empty($fields['bib_id']['value'])) {
+        $fields = $this->queryFields;
+        
+        // Hitta den mest prioriterade söknyckeln (Libris.kb ID, ISBN, ISSN)
+        $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
+        
+        if ($priorityKey !== null) {
+            $field = $fields[$priorityKey];
             $queryParts[] = $this->makeFieldQuery(
-                $record,
-                ['tag' => $fields['bib_id']['tag']],
-                $fields['bib_id']['value']
+                ['type' => 'bib'],
+                [$field['type'] => $field['value']],
+                $identifiers[$priorityKey]
             );
         }
 
-        $priorityField = $this->pickFirstAvailable($fields, ['issn', 'isbn']);
-        if ($priorityField !== null) {
+        // Lägg till Onr som ett "eller"-alternativ om det finns
+        if (!empty($identifiers['onr']) && isset($fields['onr'])) {
             if (!empty($queryParts)) {
                 $queryParts[] = 'or';
             }
-
-            $fieldKey = isset($priorityField['tag'])
-                ? ['tag' => $priorityField['tag']]
-                : ['marcTag' => $priorityField['marcTag']];
-
-            $queryParts[] = $this->makeFieldQuery($record, $fieldKey, $priorityField['value']);
-        }
-
-        if (!empty($fields['onr']['value'])) {
-            if (!empty($queryParts)) {
-                $queryParts[] = 'or';
-            }
-
+            $field = $fields['onr'];
             $queryParts[] = $this->makeFieldQuery(
-                $record,
-                ['marcTag' => $fields['onr']['marcTag']],
-                $fields['onr']['value']
+                ['type' => 'bib'],
+                [$field['type'] => $field['value']],
+                $identifiers['onr']
             );
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
+    }
+    
+    private function extractItemsFromBibsResponse(string $json): ?array {
+        $data = json_decode($json, true);
+        if (!isset($data['entries']) || !is_array($data['entries'])) {
+            return null;
+        }
+
+        $allItems = [];
+        foreach ($data['entries'] as $entry) {
+            if (isset($entry['items']) && is_array($entry['items'])) {
+                $allItems = array_merge($allItems, $entry['items']);
+            }
+        }
+        return $allItems ?: null;
     }
 
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
         return [
             'target' => [
                 'record' => $record,
-                'field'  => $fieldKey
+                'field' => $fieldKey
             ],
             'expr' => [
                 'op' => 'equals',
-                'operands' => [$value, '']
+                'operands' => [$value]
             ]
         ];
     }
 
-    // Hjälpfunktion för att välja första matchande fält från prioriterad lista
-    /**
-     * @param array<string, array{value: ?string}> $fields
-     * @param string[] $preferredKeys
-     * @return array{tag?: string, marcTag?: string, value: string}|null
-     */
-    private function pickFirstAvailable(array $fields, array $preferredKeys): ?array {
+    private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            if (!empty($fields[$key]['value'])) {
-                return $fields[$key];
+            if (isset($fields[$key]) && !empty($identifiers[$key])) {
+                return $key;
             }
         }
         return null;
     }
-
-    private function extractBibIdsFromResponse(string $json): ?array {
-        $data = json_decode($json, true);
-        if (!isset($data['entries']) || !is_array($data['entries'])) {
-            return null;
-        }
-
-        $ids = [];
-        foreach ($data['entries'] as $entry) {
-            $id = $this->extractBibIdFromLink($entry['link'] ?? '');
-            if ($id !== null) {
-                $ids[] = $id;
-            }
-        }
-
-        return $ids ?: null;
-    }
-
-    private function extractBibIdFromLink(string $link): ?string {
-        $id = basename($link);
-        return $id !== '' ? $id : null;
-    }
-
 }

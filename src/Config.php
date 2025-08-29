@@ -3,36 +3,57 @@ namespace App;
 
 use Dotenv\Dotenv;
 
-use function GuzzleHttp\debug_resource;
-
 class Config {
     private array $data;
 
-    public function __construct($envPath) {        
+    public function __construct($envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
         $dotenv->safeLoad();
 
-        foreach ($_ENV as $key => $value) {
-            if (!empty($key)) {
-                putenv("{$key}={$value}");
-            }
-        }
+        // Använd $_ENV direkt istället för getenv() för ökad konsistens
+        // Dotenv sätter redan dessa värden i $_ENV när den laddas.
         
         $this->data = [
-            'api_key'           => getenv('API_KEY') ?? '',
-            'api_secret'        => getenv('API_SECRET') ?? '',
-            'allowed_origins'   => getenv('ALLOWED_ORIGINS') ?? '',
-            'api_base_url'      => getenv('API_BASE_URL') ?? '',
-            'token_endpoint'    => getenv('TOKEN_ENDPOINT') ?? '',
-            'query_endpoint'    => getenv('QUERY_ENDPOINT') ?? '',
-            'bibs_endpoint'     => getenv('BIBS_ENDPOINT') ?? '',
-            'items_endpoint'    => getenv('ITEMS_ENDPOINT') ?? '',
-            'query_parameters' => [
-                'offset' => (int)(getenv('QUERY_OFFSET') ?? 0),
-                'limit' => (int)(getenv('QUERY_LIMIT') ?? 10)],
-            'active'            => filter_var(getenv('ACTIVE') ?? false, FILTER_VALIDATE_BOOL),
-            'log_level'         => getenv('LOG_LEVEL') ?? 'debug',
-            'log_destination'   => getenv('LOG_DESTINATION') ?? __DIR__ . '/../logs/app.log'
+            'api_key'           => $_ENV['API_KEY'] ?? '',
+            'api_secret'        => $_ENV['API_SECRET'] ?? '',
+            'allowed_origins'   => $_ENV['ALLOWED_ORIGINS'] ?? '',
+            'api_base_url'      => $_ENV['API_BASE_URL'] ?? '',
+            'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'] ?? '',
+            'query_endpoint'    => $_ENV['QUERY_ENDPOINT'] ?? '',
+            'query_parameters'  => [
+                'offset'    => (int)($_ENV['QUERY_OFFSET'] ?? 0),
+                'limit'     => (int)($_ENV['QUERY_LIMIT'] ?? 10)
+            ],
+            'query_fields' => [
+                'bib_id'    => $this->parseFieldString($_ENV['QUERY_LIBRIS_ID'] ?? null),
+                'isbn'      => $this->parseFieldString($_ENV['QUERY_ISBN'] ?? null),
+                'issn'      => $this->parseFieldString($_ENV['QUERY_ISSN'] ?? null),
+                'onr'       => $this->parseFieldString($_ENV['QUERY_ONR'] ?? null)
+            ],
+            'item_fields'       => $_ENV['ITEM_FIELDS'] ?? 'location,callNumber,status',
+            'active'            => filter_var($_ENV['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
+            'log_level'         => $_ENV['LOG_LEVEL'] ?? 'debug',
+            'log_destination'   => $_ENV['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
+        ];
+    }
+    
+    /**
+     * Parsar en sträng från .env-filen (t.ex. "tag:j") till en array.
+     *
+     * @param string|null $fieldString
+     * @return array<string, string>|null
+     */
+    private function parseFieldString(?string $fieldString): ?array {
+        if (empty($fieldString)) {
+            return null;
+        }
+        $parts = explode(':', $fieldString, 2);
+        if (count($parts) !== 2) {
+            return null;
+        }
+        return [
+            'type' => $parts[0],
+            'value' => $parts[1]
         ];
     }
 
@@ -43,6 +64,7 @@ class Config {
     public function getAllowedOrigins(): string {
         return $this->get('allowed_origins', '');
     }
+
     public function getApiBaseUrl(): string {
         return rtrim($this->get('api_base_url'), '/');
     }
@@ -55,15 +77,35 @@ class Config {
         return $this->get('api_secret');
     }
 
+    public function getTokenEndpoint(): string {
+        return $this->get('token_endpoint');
+    }
+
+    public function getQueryEndpoint(): string {
+        return $this->get('query_endpoint');
+    }
+
+    public function getItemFields(): string {
+        return $this->get('item_fields');
+    }
+
     public function getLogLevel(): string {
         return strtolower($this->get('log_level', 'debug'));
     }
 
     public function getLogDestination(): string {
-        return strtolower($this->get('log_destination'));
+        return $this->get('log_destination');
     }
-
+    
     public function getActive(): bool {
         return $this->get('active');
+    }
+
+    public function getQueryParameters(): array {
+        return $this->get('query_parameters', []);
+    }
+    
+    public function getQueryFields(): array {
+        return $this->get('query_fields', []);
     }
 }

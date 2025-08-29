@@ -39,17 +39,21 @@ i terminalen:
 Webbläsarsträng: https://turbo-goggles-7qq6475rg6p2x7x6-8080.app.github.dev/loanstatus.php?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 Debugg: https://turbo-goggles-7qq6475rg6p2x7x6-9000.app.github.dev/?Bib_ID=9v8xbqxk785qpxhh&isbn=9789177754657
 */
+
+/*
+* Detta är en ingångsfil för Libris. 
+* Den tar emot en identifierare (som en ISBN, ISSN eller Libris ID) via URL-parametrar,
+* söker i bibliotekets API efter relaterade media och genererar en XML-fil med status för varje exemplar.
+*/
 declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Dotenv\Dotenv;
 use App\Config;
 use App\SierraApiClient;
 use App\GuzzleHttpClient;
 use App\XmlGenerator;
 use App\LoggerFactory;
-use Monolog\Logger;
 
 try {
     $config = new Config(__DIR__ . '/..');
@@ -64,9 +68,8 @@ try {
             throw new \Exception("Viktiga API-nycklar saknas. Kontrollera konfigurationen.");
     }
 
-    $allowed_origins_string = $config->getAllowedOrigins();
-    $allowed_origins = explode(',', $allowed_origins_string);
     $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+    $allowedOrigins = explode(',', $config->getAllowedOrigins());
 
     if ($origin === null || in_array($origin, $allowed_origins)) {
         if ($origin !== null) {
@@ -95,28 +98,9 @@ try {
     $logger->info('API-anrop mottaget', ['params' => $identifiers]);
 
     $httpClient = new GuzzleHttpClient();
-    $apiClient = new SierraApiClient(
-        $config->getApiBaseUrl(),
-        $config->getApiKey(),
-        $config->getApiSecret(),
-        $httpClient);
-    
-    $queryParams = $config->get('query_parameters');
-    $limit = $queryParams['limit'];
-    $offset = $queryParams['offset'];
+    $apiClient = new SierraApiClient($config, $httpClient);
 
-    $bibIds = $apiClient->queryBibs($identifiers, $limit, $offset);
-    if (empty($bibIds)) {
-        throw new \RuntimeException("Inga media hittades för de angivna parametrarna.");
-    }
-
-    $allItems = [];
-    foreach ($bibIds as $bibId) {
-        $items = $apiClient->fetchItems($bibId);
-        if ($items !== null) {
-            $allItems = array_merge($allItems, $items);
-        }
-    }
+    $allItems = $apiClient->queryBibs($identifiers);
 
     if (empty($allItems)) {
         throw new \RuntimeException("Inga exemplar hittades för mediet.");

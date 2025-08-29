@@ -3,3 +3,15 @@
 [2025-08-26T10:03:05.483837+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
 [2025-08-26T10:06:37.496327+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
 [2025-08-26T10:07:34.241264+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:34:04.299177+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:34:08.451669+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
+[2025-08-29T10:34:37.101453+00:00] app.ERROR: Fel i loanstatus.php {"message":"Ingen parameter angiven i anropet.","trace":"#0 {main}"} 
+[2025-08-29T10:34:55.558211+00:00] app.ERROR: Fel i loanstatus.php {"message":"Ingen parameter angiven i anropet.","trace":"#0 {main}"} 
+[2025-08-29T10:35:42.444512+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:35:45.724705+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
+[2025-08-29T10:41:41.087149+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:41:43.892264+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
+[2025-08-29T10:45:17.326094+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:45:20.459897+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
+[2025-08-29T10:52:38.180417+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-08-29T10:52:39.811313+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
