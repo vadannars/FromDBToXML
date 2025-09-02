@@ -100,7 +100,7 @@ try {
     $httpClient = new GuzzleHttpClient();
     $apiClient = new SierraApiClient($config, $httpClient);
 
-    $allItems = $apiClient->queryBibs($identifiers);
+    $allItems = $apiClient->getItemsForIdentifiers($identifiers);
 
     if (empty($allItems)) {
         throw new \RuntimeException("Inga exemplar hittades för mediet.");

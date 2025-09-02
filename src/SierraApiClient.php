@@ -12,6 +12,7 @@ class SierraApiClient {
     private string $apiSecret;
     private string $tokenEndpoint;
     private string $queryEndpoint;
+    private string $itemsEndpoint;
     private array $queryParameters;
     private array $queryFields;
     private string $itemFields;
@@ -26,6 +27,7 @@ class SierraApiClient {
         $this->apiSecret = $config->getApiSecret();
         $this->tokenEndpoint = $config->getTokenEndpoint();
         $this->queryEndpoint = $config->getQueryEndpoint();
+        $this->itemsEndpoint = $config->getItemsEndpoint();
         $this->queryParameters = $config->getQueryParameters();
         $this->queryFields = $config->getQueryFields();
         $this->itemFields = $config->getItemFields();
@@ -69,23 +71,21 @@ class SierraApiClient {
         $this->expiresAt = time() + (int)$data['expires_in'];
     }
 
-    public function queryBibs(array $identifiers): ?array {
+    public function getItemsForIdentifiers(array $identifiers): ?array {
         $token = $this->getToken();
-        $query = $this->buildCombinedQuery($identifiers);
+        $bibQuery = $this->buildCombinedQuery($identifiers);
 
-        if ($query === null) {
+        if ($bibQuery === null) {
             return null;
         }
 
-        $fields = "id,items{" . $this->itemFields . "}";
-        $params = http_build_query([
+        $bibParams = http_build_query([
             'limit' => $this->queryParameters['limit'],
-            'offset' => $this->queryParameters['offset'],
-            'fields' => $fields,
+            'offset' => $this->queryParameters['offset']
         ]);
 
-        $url = $this->baseUrl . $this->queryEndpoint . '?' . $params;
-        $jsonQuery = json_encode($query, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $bibUrl = $this->baseUrl . $this->queryEndpoint . '?' . $bibParams;
+        $jsonQuery = json_encode($bibQuery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
@@ -93,17 +93,37 @@ class SierraApiClient {
             'Accept' => 'application/json'
         ];
 
-        $response = $this->httpClient->request($url, 'POST', $headers, $jsonQuery);
+        $bibResponse = $this->httpClient->request($bibUrl, 'POST', $headers, $jsonQuery);
 
-        if ($response['status'] !== 200) {
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$response['status']} - {$response['error']}");
+        if ($bibResponse['status'] !== 200) {
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
-        return $this->extractItemsFromBibsResponse($response['response']);
+        $bibData = json_decode($bibResponse['response'], true);
+        $bibIds = $this->extractBibIdsFromResponse($bibData);
+
+        if (empty($bibIds)) {
+            return null;
+        }
+
+        $itemParams = http_build_query([
+            'fields' => $this->itemFields,
+            'bibIds' => implode(',', $bibIds)]);
+        
+        $itemsUrl = $this->baseUrl . $this->itemsEndpoint . '?' . $itemParams;
+        $itemsResponse = $this->httpClient->request($itemsUrl, 'GET', $headers);
+
+        if ($itemsResponse['status'] !== 200) {
+            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
+        }
+
+        $itemsData = json_decode($itemsResponse['response'], true);
+        return $itemsData['entries'] ?? null;
     }
 
     private function buildCombinedQuery(array $identifiers): ?array {
         $queryParts = [];
+        $record = ['type' => 'bib'];
         $fields = $this->queryFields;
         
         // Hitta den mest prioriterade söknyckeln (Libris.kb ID, ISBN, ISSN)
@@ -112,7 +132,7 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $queryParts[] = $this->makeFieldQuery(
-                ['type' => 'bib'],
+                $record,
                 [$field['type'] => $field['value']],
                 $identifiers[$priorityKey]
             );
@@ -125,28 +145,13 @@ class SierraApiClient {
             }
             $field = $fields['onr'];
             $queryParts[] = $this->makeFieldQuery(
-                ['type' => 'bib'],
+                $record,
                 [$field['type'] => $field['value']],
                 $identifiers['onr']
             );
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
-    }
-    
-    private function extractItemsFromBibsResponse(string $json): ?array {
-        $data = json_decode($json, true);
-        if (!isset($data['entries']) || !is_array($data['entries'])) {
-            return null;
-        }
-
-        $allItems = [];
-        foreach ($data['entries'] as $entry) {
-            if (isset($entry['items']) && is_array($entry['items'])) {
-                $allItems = array_merge($allItems, $entry['items']);
-            }
-        }
-        return $allItems ?: null;
     }
 
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
@@ -169,5 +174,26 @@ class SierraApiClient {
             }
         }
         return null;
+    }
+
+    private function extractBibIdsFromResponse(array $data): ?array {
+        if (!isset($data['entries']) || !is_array($data['entries'])) {
+            return null;
+        }
+        
+        $ids = [];
+        foreach ($data['entries'] as $entry) {
+            $id = $this->extractBibIdFromLink($entry['link'] ?? '');
+            if ($id !== null) {
+                $ids[] = $id;
+            }
+        }
+        
+        return $ids ?: null;
+    }
+
+    private function extractBibIdFromLink(string $link): ?string {
+        $id = basename($link);
+        return $id !== '' ? $id : null;
     }
 }

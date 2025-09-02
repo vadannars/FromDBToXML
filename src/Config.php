@@ -9,9 +9,6 @@ class Config {
     public function __construct($envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
         $dotenv->safeLoad();
-
-        // Använd $_ENV direkt istället för getenv() för ökad konsistens
-        // Dotenv sätter redan dessa värden i $_ENV när den laddas.
         
         $this->data = [
             'api_key'           => $_ENV['API_KEY'] ?? '',
@@ -20,6 +17,7 @@ class Config {
             'api_base_url'      => $_ENV['API_BASE_URL'] ?? '',
             'token_endpoint'    => $_ENV['TOKEN_ENDPOINT'] ?? '',
             'query_endpoint'    => $_ENV['QUERY_ENDPOINT'] ?? '',
+            'items_endpoint'    => $_ENV['ITEMS_ENDPOINT'] ?? '',
             'query_parameters'  => [
                 'offset'    => (int)($_ENV['QUERY_OFFSET'] ?? 0),
                 'limit'     => (int)($_ENV['QUERY_LIMIT'] ?? 10)
@@ -83,6 +81,10 @@ class Config {
 
     public function getQueryEndpoint(): string {
         return $this->get('query_endpoint');
+    }
+
+    public function getItemsEndpoint(): string {
+        return $this->get('items_endpoint');
     }
 
     public function getItemFields(): string {
