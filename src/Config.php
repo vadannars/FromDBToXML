@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace App;
 
 use Dotenv\Dotenv;
@@ -23,14 +25,14 @@ class Config {
         $dotenv->safeLoad();
         
         $this->data = [
-            'api_key'           => (string) $_ENV['API_KEY'] ?? '',
-            'api_secret'        => (string) $_ENV['API_SECRET'] ?? '',
-            'allowed_origins'   => (string) $_ENV['ALLOWED_ORIGINS'] ?? '',
-            'api_base_url'      => (string) $_ENV['API_BASE_URL'] ?? '',
-            'token_endpoint'    => (string) $_ENV['TOKEN_ENDPOINT'] ?? '',
-            'query_endpoint'    => (string) $_ENV['QUERY_ENDPOINT'] ?? '',
-            'items_endpoint'    => (string) $_ENV['ITEMS_ENDPOINT'] ?? '',
-            'query_parameters'  => [
+            'api_key'           => isset($_ENV['API_KEY']) ? (string) $_ENV['API_KEY'] : '',
+            'api_secret'        => isset($_ENV['API_SECRET']) ? (string) $_ENV['API_SECRET'] : '',
+            'allowed_origins'   => isset($_ENV['ALLOWED_ORIGINS']) ? (string) $_ENV['ALLOWED_ORIGINS'] : '',
+            'api_base_url'      => isset($_ENV['API_BASE_URL']) ? (string) $_ENV['API_BASE_URL'] : '',
+            'token_endpoint'    => isset($_ENV['TOKEN_ENDPOINT']) ? (string) $_ENV['TOKEN_ENDPOINT'] : '',
+            'query_endpoint'    => isset($_ENV['QUERY_ENDPOINT']) ? (string) $_ENV['QUERY_ENDPOINT'] : '',
+            'items_endpoint'    => isset($_ENV['ITEMS_ENDPOINT']) ? (string) $_ENV['ITEMS_ENDPOINT'] : '',
+            'query_parameters' => [
                 'offset'    => isset($_ENV['QUERY_OFFSET']) ? (int) $_ENV['QUERY_OFFSET'] : 0,
                 'limit'     => isset($_ENV['QUERY_LIMIT']) ? (int) $_ENV['QUERY_LIMIT'] : 10
             ],
@@ -62,11 +64,11 @@ class Config {
             return null;
         }
         return [
-            'type' => $parts[0],
-            'value' => $parts[1]
+            'type' => (string) $parts[0],
+            'value' => (string) $parts[1]
         ];
     }
-
+    
     /**
      * Hämtar ett konfigurationsvärde.
      *
@@ -81,47 +83,38 @@ class Config {
     public function getAllowedOrigins(): string {
         return (string) $this->get('allowed_origins', '');
     }
-
+    
     public function getApiBaseUrl(): string {
         return rtrim((string) $this->get('api_base_url'), '/');
     }
-
     public function getApiKey(): string {
         return (string) $this->get('api_key');
     }
-
     public function getApiSecret(): string {
         return (string) $this->get('api_secret');
     }
-
     public function getTokenEndpoint(): string {
         return (string) $this->get('token_endpoint');
     }
-
     public function getQueryEndpoint(): string {
         return (string) $this->get('query_endpoint');
     }
-
     public function getItemsEndpoint(): string {
         return (string) $this->get('items_endpoint');
     }
-
     public function getItemFields(): string {
         return (string) $this->get('item_fields');
     }
-
     public function getLogLevel(): string {
         return strtolower((string) $this->get('log_level', 'debug'));
     }
-
     public function getLogDestination(): string {
         return (string) $this->get('log_destination');
     }
-    
     public function getActive(): bool {
         return (bool) $this->get('active');
     }
-
+    
     /**
      * @return array<string, int>
      */
