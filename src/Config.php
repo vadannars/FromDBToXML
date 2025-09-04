@@ -18,7 +18,7 @@ class Config {
      *
      * @param string $envPath Sökvägen till mappen där .env-filen finns.
      */
-    public function __construct($envPath) {
+    public function __construct(string $envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
         $dotenv->safeLoad();
         
@@ -31,19 +31,19 @@ class Config {
             'query_endpoint'    => (string) $_ENV['QUERY_ENDPOINT'] ?? '',
             'items_endpoint'    => (string) $_ENV['ITEMS_ENDPOINT'] ?? '',
             'query_parameters'  => [
-                'offset'    => (int)($_ENV['QUERY_OFFSET'] ?? 0),
-                'limit'     => (int)($_ENV['QUERY_LIMIT'] ?? 10)
+                'offset'    => isset($_ENV['QUERY_OFFSET']) ? (int) $_ENV['QUERY_OFFSET'] : 0,
+                'limit'     => isset($_ENV['QUERY_LIMIT']) ? (int) $_ENV['QUERY_LIMIT'] : 10
             ],
             'query_fields' => [
-                'bib_id'    => $this->parseFieldString($_ENV['QUERY_LIBRIS_ID'] ?? null),
-                'isbn'      => $this->parseFieldString($_ENV['QUERY_ISBN'] ?? null),
-                'issn'      => $this->parseFieldString($_ENV['QUERY_ISSN'] ?? null),
-                'onr'       => $this->parseFieldString($_ENV['QUERY_ONR'] ?? null)
+                'bib_id'    => $this->parseFieldString(isset($_ENV['QUERY_LIBRIS_ID']) ? (string) $_ENV['QUERY_LIBRIS_ID'] : null),
+                'isbn'      => $this->parseFieldString(isset($_ENV['QUERY_ISBN']) ? (string) $_ENV['QUERY_ISBN'] : null),
+                'issn'      => $this->parseFieldString(isset($_ENV['QUERY_ISSN']) ? (string) $_ENV['QUERY_ISSN'] : null),
+                'onr'       => $this->parseFieldString(isset($_ENV['QUERY_ONR']) ? (string) $_ENV['QUERY_ONR'] : null)
             ],
-            'item_fields'       => (string) $_ENV['ITEM_FIELDS'] ?? 'location,callNumber,status',
-            'active'            => filter_var($_ENV['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
-            'log_level'         => (string) $_ENV['LOG_LEVEL'] ?? 'debug',
-            'log_destination'   => (string) $_ENV['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
+            'item_fields'       => isset($_ENV['ITEM_FIELDS']) ? (string) $_ENV['ITEM_FIELDS'] : 'location,callNumber,status',
+            'active'            => isset($_ENV['ACTIVE']) ? filter_var($_ENV['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
+            'log_level'         => isset($_ENV['LOG_LEVEL']) ? (string) $_ENV['LOG_LEVEL'] : 'debug',
+            'log_destination'   => isset($_ENV['LOG_DESTINATION']) ? (string) $_ENV['LOG_DESTINATION'] : __DIR__ . '/../logs/app.log'
         ];
     }
     
