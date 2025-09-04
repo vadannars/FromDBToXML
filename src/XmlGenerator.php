@@ -47,8 +47,8 @@ class XmlGenerator {
         foreach ($items as $item) {
             $xmlItem = $itemInfo->addChild('Item');
 
-            $statusCode = trim($item['status']['code'] ?? 'UNKNOWN');
-            $duedate = $item['status']['duedate'] ?? '';
+            $statusCode = trim((string) $item['status']['code'] ?? 'UNKNOWN');
+            $duedate = (string) $item['status']['duedate'] ?? '';
 
             $statusText = '-';
             if ($statusCode === '-') {
@@ -59,8 +59,8 @@ class XmlGenerator {
 
             $fields = [
                 'Item_No' => $counter++,
-                'Location' => $item['location']['name'] ?? '',
-                'Call_No' => $item['callNumber'] ?? '',
+                'Location' => (string) $item['location']['name'] ?? '',
+                'Call_No' => (string) $item['callNumber'] ?? '',
                 'Status' => $statusText,
                 'Status_date' => $duedate,
                 'Status_Date_Description' => ($statusCode === '-' && $duedate !== '') ? 'ÅTER ' : '',
@@ -72,7 +72,10 @@ class XmlGenerator {
                 $xmlItem->addChild($tag, htmlspecialchars((string)$value));
             }
         }
-
-        return $xml->asXML();
+        $xmlResult = $xml->asXML();
+        if ($xmlResult === false) {
+            throw new \RuntimeException("Ingen xml-data genererades.");
+        }
+        return $xmlResult;
     }
 }

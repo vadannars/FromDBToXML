@@ -33,7 +33,6 @@ class SierraApiClient {
      * @param Config $config En konfigurationsobjekt med API-uppgifter.
      * @param HttpClientInterface $httpClient En HTTP-klientimplementering (t.ex. GuzzleHttpClient).
      */
-
     public function __construct(Config $config, HttpClientInterface $httpClient) {
         $this->baseUrl = rtrim($config->getApiBaseUrl(), '/');
         $this->apiKey = $config->getApiKey();
@@ -41,8 +40,14 @@ class SierraApiClient {
         $this->tokenEndpoint = $config->getTokenEndpoint();
         $this->queryEndpoint = $config->getQueryEndpoint();
         $this->itemsEndpoint = $config->getItemsEndpoint();
-        $this->queryParameters = $config->getQueryParameters();
-        $this->queryFields = $config->getQueryFields();
+
+        /** @var array<string, int> $queryParameters */
+        $queryParameters = $config->getQueryParameters();
+        $this->queryParameters = $queryParameters;
+
+        /** @var array<string, array<string, string>|null> $queryFields */
+        $queryFields = $config->getQueryFields();
+        $this->queryFields = $queryFields;
         $this->itemFields = $config->getItemFields();
         $this->httpClient = $httpClient;
     }
@@ -88,10 +93,10 @@ class SierraApiClient {
         }
 
         $data = json_decode($response['response'], true);
-        if (!isset($data['access_token']) || !isset($data['expires_in'])) {
+        if (!is_array($data) || !isset($data['access_token']) || !isset($data['expires_in'])) {
             throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
-        $this->token = $data['access_token'];
+        $this->token = (string) $data['access_token'];
         $this->expiresAt = time() + (int)$data['expires_in'];
     }
 
@@ -131,6 +136,9 @@ class SierraApiClient {
         }
 
         $bibData = json_decode($bibResponse['response'], true);
+        if (!is_array($bibData)) {
+            throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
+        }
         $bibIds = $this->extractBibIdsFromResponse($bibData);
 
         if (empty($bibIds)) {
@@ -149,6 +157,9 @@ class SierraApiClient {
         }
 
         $itemsData = json_decode($itemsResponse['response'], true);
+        if (!is_array($itemsData)) {
+            throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
+        }
         return $itemsData['entries'] ?? null;
     }
 
@@ -204,23 +215,38 @@ class SierraApiClient {
         ];
     }
 
+    /**
+     * @param array<string, array<string, string>|null> $fields
+     * @param array<string, string|null> $identifiers
+     * @param array<int, string> $preferredKeys
+     * @return string|null
+     */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
             if (isset($fields[$key]) && !empty($identifiers[$key])) {
-                return $key;
+                return (string) $key;
             }
         }
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<int, string>|null
+     */
     private function extractBibIdsFromResponse(array $data): ?array {
         if (!isset($data['entries']) || !is_array($data['entries'])) {
             return null;
         }
         
         $ids = [];
+        /** @var mixed $entry */
         foreach ($data['entries'] as $entry) {
-            $id = $this->extractBibIdFromLink($entry['link'] ?? '');
+            if (!is_array($entry)) {
+                continue;
+            }
+            $link = (string) ($entry['link'] ?? '');
+            $id = $this->extractBibIdFromLink($link);
             if ($id !== null) {
                 $ids[] = $id;
             }

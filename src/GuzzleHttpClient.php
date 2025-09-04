@@ -39,13 +39,13 @@ class GuzzleHttpClient implements HttpClientInterface
             'headers' => $headers,
         ];
 
-        // Guzzle hanterar body-data på olika sätt beroende på metod och Content-Type
         if ($body !== null) {
-            if (isset($headers['Content-Type']) && $headers['Content-Type'] === 'application/json') {
-                $options['json'] = json_decode($body);
-            } else {
-                $options['body'] = $body;
-            }
+            // if (isset($headers['Content-Type']) && $headers['Content-Type'] === 'application/json') {
+            //     $options['json'] = json_decode($body);
+            // } else {
+            //     $options['body'] = $body;
+            // }
+            $options['body'] = $body;
         }
         
         try {
@@ -58,19 +58,20 @@ class GuzzleHttpClient implements HttpClientInterface
             ];
         } catch (RequestException $e) {
             $response = $e->getResponse();
-            if ($response) {
-                return [
-                    'status' => $response->getStatusCode(),
-                    'response' => $response->getBody()->getContents(),
-                    'error' => $e->getMessage()
-                ];
-            }
-            
-            return [
-                'status' => 0,
-                'response' => '',
+            // if ($response) {
+            //     return [
+            //         'status' => $response->getStatusCode(),
+            //         'response' => $response->getBody()->getContents(),
+            //         'error' => $e->getMessage()
+            //     ];
+            $statusCode = $response ? $response->getStatusCode() : 0;
+            $responseBody = $response ? $response->getBody()->getContents() : '';
+                        return [
+                'status' => $statusCode,
+                'response' => $responseBody,
                 'error' => $e->getMessage()
             ];
         }
+            
     }
 }
