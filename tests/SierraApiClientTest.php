@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Config;
 use App\SierraApiClient;
 use App\HttpClientInterface;
 use PHPUnit\Framework\TestCase;
@@ -10,50 +11,72 @@ use PHPUnit\Framework\TestCase;
 class SierraApiClientTest extends TestCase
 {
     /**
-     * Testar att queryBibs() lyckas, vilket i sin tur triggar en lyckad autentisering
+     * @var string Ett dummy-svar från API:ets token-endpoint
+     */
+    private const FAKE_AUTH_RESPONSE = '{ "access_token": "en-superhemlig-test-token", "expires_in": 3600 }';
+
+    /**
+     * @var string Ett dummy-svar från API:ets query-endpoint
+     */
+    private const FAKE_QUERY_RESPONSE = '{ "entries": [] }';
+
+    /**
+     * Skapar en mock av Config-objektet för att testa SierraApiClient.
+     *
+     * @return Config
+     */
+    private function createMockConfig(): Config
+    {
+        $mockConfig = $this->createMock(Config::class);
+        $mockConfig->method('getApiBaseUrl')->willReturn('https://example.com/api/v6');
+        $mockConfig->method('getApiKey')->willReturn('test_key');
+        $mockConfig->method('getApiSecret')->willReturn('test_secret');
+        $mockConfig->method('getTokenEndpoint')->willReturn('/token');
+        $mockConfig->method('getQueryEndpoint')->willReturn('/bibs/query');
+        $mockConfig->method('getItemsEndpoint')->willReturn('/items');
+        $mockConfig->method('getQueryParameters')->willReturn(['limit' => 10, 'offset' => 0]);
+        $mockConfig->method('getItemFields')->willReturn('location,callNumber,status');
+        $mockConfig->method('getQueryFields')->willReturn([
+            'bib_id' => ['type' => 'tag', 'value' => 'j'],
+            'isbn' => ['type' => 'tag', 'value' => 'i'],
+            'issn' => ['type' => 'marcTag', 'value' => '022'],
+            'onr' => ['type' => 'marcTag', 'value' => '035']
+        ]);
+        return $mockConfig;
+    }
+
+    /**
+     * Testar att getItemsForIdentifiers() lyckas, vilket i sin tur triggar en lyckad autentisering
      * och sätter token och utgångstid.
      */
-    public function testAuthenticateSuccessfullySetsTokenAndExpiry(): void
+    public function testGetItemsForIdentifiersSuccessfullySetsTokenAndExpiry(): void
     {
         // === ARRANGE ===
         $mockHttpClient = $this->createMock(HttpClientInterface::class);
-
-        // API-svaret för token måste innehålla expires_in.
         $fakeAuthResponse = [
             'status' => 200,
-            'response' => json_encode([
-                'access_token' => 'en-superhemlig-test-token',
-                'expires_in' => 3600 // T.ex. 1 timme
-            ]),
+            'response' => self::FAKE_AUTH_RESPONSE,
             'error' => ''
         ];
-
-        // API-svaret för bibs/query. Innehållet här spelar inte så stor roll för detta test.
         $fakeQueryResponse = [
             'status' => 200,
-            'response' => json_encode(['entries' => []]),
+            'response' => self::FAKE_QUERY_RESPONSE,
             'error' => ''
         ];
 
-        // Konfigurera mock-objektet att förvänta sig TVÅ anrop, ett efter det andra,
-        // med hjälp av den moderna metoden.
         $mockHttpClient->expects($this->exactly(2))
-                       ->method('request')
-                       ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse);
+            ->method('request')
+            ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse);
         
         $sierraClient = new SierraApiClient(
-            'https://example.com/api/v6',
-            'test_key',
-            'test_secret',
+            $this->createMockConfig(),
             $mockHttpClient
         );
 
         // === ACT ===
-        // Vi anropar den publika metoden. Detta kommer att trigga båda API-anropen internt.
-        $sierraClient->queryBibs(['isbn' => '978-3-16-148410-0']);
+        $sierraClient->getItemsForIdentifiers(['isbn' => '978-3-16-148410-0']);
 
         // === ASSERT ===
-        // Nu verifierar vi att de privata egenskaperna har fått rätt värden.
         $reflection = new \ReflectionClass(SierraApiClient::class);
 
         $tokenProperty = $reflection->getProperty('token');
@@ -65,65 +88,46 @@ class SierraApiClientTest extends TestCase
         $actualExpiresAt = $expiresAtProperty->getValue($sierraClient);
 
         $this->assertEquals('en-superhemlig-test-token', $actualToken);
-        // Kontrollerar att expiresAt är satt till en tidpunkt i framtiden.
         $this->assertGreaterThan(time(), $actualExpiresAt);
     }
 
     /**
-     * Testar att queryBibs() kastar ett undantag om autentiseringen misslyckas.
-     * Denna testar den publika metoden och den felhanteringslogik som är inbyggd i getToken().
+     * Testar att getItemsForIdentifiers() kastar ett undantag om autentiseringen misslyckas.
      */
-    public function testQueryBibsThrowsExceptionOnAuthenticationFailure(): void
+    public function testGetItemsThrowsExceptionOnAuthenticationFailure(): void
     {
         // === ARRANGE ===
         $mockHttpClient = $this->createMock(HttpClientInterface::class);
-
-        // Vårt mockade svar simulerar en misslyckad autentisering (t.ex. 401 Unauthorized).
         $failedAuthResponse = [
             'status' => 401,
             'response' => '',
             'error' => 'Unauthorized'
         ];
-
-        // Konfigurera mocken. Vi förväntar oss ett anrop till 'request' som returnerar ett fel.
         $mockHttpClient->expects($this->once())
-                       ->method('request')
-                       ->willReturn($failedAuthResponse);
+            ->method('request')
+            ->willReturn($failedAuthResponse);
 
         $sierraClient = new SierraApiClient(
-            'https://example.com/api/v6',
-            'test_key',
-            'test_secret',
+            $this->createMockConfig(),
             $mockHttpClient
         );
         
         // === ASSERT (innan ACT) ===
-        // Vi förväntar oss att en RuntimeException kastas.
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Autentisering misslyckades: HTTP 401 - Unauthorized');
 
         // === ACT ===
-        // Anropa den publika metoden. Den interna getToken() kommer att anropa authenticate() och misslyckas.
-        $sierraClient->queryBibs(['isbn' => '978-3-16-148410-0']);
+        $sierraClient->getItemsForIdentifiers(['isbn' => '978-3-16-148410-0']);
     }
 
     /**
-     * Testar att queryBibs anropar API:et korrekt och returnerar parsade bib-ID:n.
-     * Vi måste nu mocka TVÅ anrop: ett för token och ett för bib-query.
+     * Testar att getItemsForIdentifiers anropar API:et korrekt och returnerar parsade item-ID:n.
      */
-    public function testQueryBibsReturnsParsedIdsOnSuccess(): void
+    public function testGetItemsReturnsParsedIdsOnSuccess(): void
     {
         // === ARRANGE ===
         $mockHttpClient = $this->createMock(HttpClientInterface::class);
-
-        // Steg 1: Mocka det första anropet för autentisering.
-        $fakeAuthResponse = [
-            'status' => 200,
-            'response' => json_encode(['access_token' => 'en-giltig-token', 'expires_in' => 3600]),
-            'error' => ''
-        ];
-
-        // Steg 2: Mocka det andra anropet för sökningen.
+        $fakeAuthResponse = ['status' => 200, 'response' => self::FAKE_AUTH_RESPONSE, 'error' => ''];
         $fakeQueryResponse = [
             'status' => 200,
             'response' => json_encode([
@@ -134,25 +138,87 @@ class SierraApiClientTest extends TestCase
             ]),
             'error' => ''
         ];
+        $fakeItemsResponse = [
+            'status' => 200,
+            'response' => json_encode(['entries' => [
+                ['id' => 'i1', 'status' => ['code' => '-']],
+                ['id' => 'i2', 'status' => ['code' => '!']]
+            ]]),
+            'error' => ''
+        ];
         
-        // Använd willReturnOnConsecutiveCalls() för att definiera svaren för de två anropen i ordning.
-        $mockHttpClient->expects($this->exactly(2))
-                       ->method('request')
-                       ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse);
+        $mockHttpClient->expects($this->exactly(3))
+            ->method('request')
+            ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse, $fakeItemsResponse);
 
-        // Steg 3: Skapa en instans av SierraApiClient med vår mock.
         $sierraClient = new SierraApiClient(
-            'https://example.com/api/v6',
-            'test_key',
-            'test_secret',
+            $this->createMockConfig(),
             $mockHttpClient
         );
         
         // === ACT ===
-        // Anropa den publika metoden. Det första anropet kommer att trigga autentisering.
-        $result = $sierraClient->queryBibs(['isbn' => '978-3-16-148410-0']);
+        $result = $sierraClient->getItemsForIdentifiers(['isbn' => '978-3-16-148410-0']);
 
         // === ASSERT ===
-        $this->assertEquals(['12345', '67890'], $result);
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        $this->assertEquals('i1', $result[0]['id']);
+    }
+
+    /**
+     * Testar att den interna metoden buildCombinedQuery genererar rätt query.
+     */
+    public function testBuildsCorrectQueryForMultipleIdentifiers(): void
+    {
+        // === ARRANGE ===
+        $mockHttpClient = $this->createMock(HttpClientInterface::class);
+        $sierraClient = new SierraApiClient(
+            $this->createMockConfig(),
+            $mockHttpClient
+        );
+        $reflection = new \ReflectionClass(SierraApiClient::class);
+        $method = $reflection->getMethod('buildCombinedQuery');
+        $method->setAccessible(true);
+        
+        // Exempel 1: Endast ISBN
+        $identifiers1 = ['isbn' => '978-1234567890', 'bib_id' => null];
+        $expected1 = [
+            'queries' => [
+                [
+                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'i'] ],
+                    'expr' => [ 'op' => 'equals', 'operands' => ['978-1234567890'] ]
+                ]
+            ]
+        ];
+        $this->assertEquals($expected1, $method->invoke($sierraClient, $identifiers1));
+        
+        // Exempel 2: Både Bib_ID (prioritet) och ISBN
+        $identifiers2 = ['bib_id' => '9v8xbqxk785qpxhh', 'isbn' => '978-1234567890'];
+        $expected2 = [
+            'queries' => [
+                [
+                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'j'] ],
+                    'expr' => [ 'op' => 'equals', 'operands' => ['9v8xbqxk785qpxhh'] ]
+                ]
+            ]
+        ];
+        $this->assertEquals($expected2, $method->invoke($sierraClient, $identifiers2));
+
+        // Exempel 3: ISBN och ONR (OR-logik)
+        $identifiers3 = ['isbn' => '978-1234567890', 'onr' => '1234567'];
+        $expected3 = [
+            'queries' => [
+                [
+                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'i'] ],
+                    'expr' => [ 'op' => 'equals', 'operands' => ['978-1234567890'] ]
+                ],
+                'or',
+                [
+                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['marcTag' => '035'] ],
+                    'expr' => [ 'op' => 'equals', 'operands' => ['1234567'] ]
+                ]
+            ]
+        ];
+        $this->assertEquals($expected3, $method->invoke($sierraClient, $identifiers3));
     }
 }
