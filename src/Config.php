@@ -25,27 +25,27 @@ class Config {
         $dotenv->safeLoad();
         
         $this->data = [
-            'api_key'           => isset($_ENV['API_KEY']) ? (string) $_ENV['API_KEY'] : '',
-            'api_secret'        => isset($_ENV['API_SECRET']) ? (string) $_ENV['API_SECRET'] : '',
-            'allowed_origins'   => isset($_ENV['ALLOWED_ORIGINS']) ? (string) $_ENV['ALLOWED_ORIGINS'] : '',
-            'api_base_url'      => isset($_ENV['API_BASE_URL']) ? (string) $_ENV['API_BASE_URL'] : '',
-            'token_endpoint'    => isset($_ENV['TOKEN_ENDPOINT']) ? (string) $_ENV['TOKEN_ENDPOINT'] : '',
-            'query_endpoint'    => isset($_ENV['QUERY_ENDPOINT']) ? (string) $_ENV['QUERY_ENDPOINT'] : '',
-            'items_endpoint'    => isset($_ENV['ITEMS_ENDPOINT']) ? (string) $_ENV['ITEMS_ENDPOINT'] : '',
+            'api_key' => (isset($_ENV['API_KEY']) && is_string($_ENV['API_KEY'])) ? $_ENV['API_KEY'] : '',
+            'api_secret' => (isset($_ENV['API_SECRET']) && is_string($_ENV['API_SECRET'])) ? $_ENV['API_SECRET'] : '',
+            'allowed_origins' => (isset($_ENV['ALLOWED_ORIGINS']) && is_string($_ENV['ALLOWED_ORIGINS'])) ? $_ENV['ALLOWED_ORIGINS'] : '',
+            'api_base_url' => (isset($_ENV['API_BASE_URL']) && is_string($_ENV['API_BASE_URL'])) ? $_ENV['API_BASE_URL'] : '',
+            'token_endpoint' => (isset($_ENV['TOKEN_ENDPOINT']) && is_string($_ENV['TOKEN_ENDPOINT'])) ? $_ENV['TOKEN_ENDPOINT'] : '',
+            'query_endpoint' => (isset($_ENV['QUERY_ENDPOINT']) && is_string($_ENV['QUERY_ENDPOINT'])) ? $_ENV['QUERY_ENDPOINT'] : '',
+            'items_endpoint' => (isset($_ENV['ITEMS_ENDPOINT']) && is_string($_ENV['ITEMS_ENDPOINT'])) ? $_ENV['ITEMS_ENDPOINT'] : '',
             'query_parameters' => [
-                'offset'    => isset($_ENV['QUERY_OFFSET']) ? (int) $_ENV['QUERY_OFFSET'] : 0,
-                'limit'     => isset($_ENV['QUERY_LIMIT']) ? (int) $_ENV['QUERY_LIMIT'] : 10
+                'offset' => (isset($_ENV['QUERY_OFFSET']) && is_numeric($_ENV['QUERY_OFFSET'])) ? (int) $_ENV['QUERY_OFFSET'] : 0,
+                'limit' => (isset($_ENV['QUERY_LIMIT']) && is_numeric($_ENV['QUERY_LIMIT'])) ? (int) $_ENV['QUERY_LIMIT'] : 10
             ],
             'query_fields' => [
-                'bib_id'    => $this->parseFieldString(isset($_ENV['QUERY_LIBRIS_ID']) ? (string) $_ENV['QUERY_LIBRIS_ID'] : null),
-                'isbn'      => $this->parseFieldString(isset($_ENV['QUERY_ISBN']) ? (string) $_ENV['QUERY_ISBN'] : null),
-                'issn'      => $this->parseFieldString(isset($_ENV['QUERY_ISSN']) ? (string) $_ENV['QUERY_ISSN'] : null),
-                'onr'       => $this->parseFieldString(isset($_ENV['QUERY_ONR']) ? (string) $_ENV['QUERY_ONR'] : null)
+                'bib_id' => $this->parseFieldString(isset($_ENV['QUERY_LIBRIS_ID']) ? (string) $_ENV['QUERY_LIBRIS_ID'] : null),
+                'isbn' => $this->parseFieldString(isset($_ENV['QUERY_ISBN']) ? (string) $_ENV['QUERY_ISBN'] : null),
+                'issn' => $this->parseFieldString(isset($_ENV['QUERY_ISSN']) ? (string) $_ENV['QUERY_ISSN'] : null),
+                'onr' => $this->parseFieldString(isset($_ENV['QUERY_ONR']) ? (string) $_ENV['QUERY_ONR'] : null)
             ],
-            'item_fields'       => isset($_ENV['ITEM_FIELDS']) ? (string) $_ENV['ITEM_FIELDS'] : 'location,callNumber,status',
-            'active'            => isset($_ENV['ACTIVE']) ? filter_var($_ENV['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
-            'log_level'         => isset($_ENV['LOG_LEVEL']) ? (string) $_ENV['LOG_LEVEL'] : 'debug',
-            'log_destination'   => isset($_ENV['LOG_DESTINATION']) ? (string) $_ENV['LOG_DESTINATION'] : __DIR__ . '/../logs/app.log'
+            'item_fields' => (isset($_ENV['ITEM_FIELDS']) && is_string($_ENV['ITEM_FIELDS'])) ? $_ENV['ITEM_FIELDS'] : 'location,callNumber,status',
+            'active' => (isset($_ENV['ACTIVE']) && is_string($_ENV['ACTIVE'])) ? filter_var($_ENV['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
+            'log_level' => (isset($_ENV['LOG_LEVEL']) && is_string($_ENV['LOG_LEVEL'])) ? $_ENV['LOG_LEVEL'] : 'debug',
+            'log_destination' => (isset($_ENV['LOG_DESTINATION']) && is_string($_ENV['LOG_DESTINATION'])) ? $_ENV['LOG_DESTINATION'] : __DIR__ . '/../logs/app.log'
         ];
     }
     
@@ -68,7 +68,7 @@ class Config {
             'value' => (string) $parts[1]
         ];
     }
-    
+
     /**
      * Hämtar ett konfigurationsvärde.
      *
