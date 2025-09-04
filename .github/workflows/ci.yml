@@ -1,0 +1,55 @@
+name: PHP CI
+
+# Triggera workflow:
+# - varje gång du gör en push till main-grenen (generalApi WIP)
+# - varje gång du skapar en pull request
+on:
+  push:
+    branches: [ "generalApi" ]
+  pull_request:
+    branches: [ "generalApi" ]
+
+# Körningen består av ett eller flera "jobs"
+jobs:
+  build:
+    # Körs på en virtuell Ubuntu-maskin
+    runs-on: ubuntu-latest
+
+    # Strategi för att testa mot flera PHP-versioner
+    strategy:
+      matrix:
+        php-version: ['8.2', '8.3']
+
+    # Steg i jobbet
+    steps:
+      # Steg 1: Checka ut repot
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Steg 2: Ställ in PHP-miljön
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, pdo, curl, gd
+          tools: composer:v2
+
+      # Steg 3: Installera Composer-beroenden
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      # Steg 4: Kopiera .env-filen för att testerna ska kunna köra
+      - name: Copy .env.example
+        run: cp .env.example .env
+
+      # Steg 5: Kör PHPUnit-testerna
+      - name: Run PHPUnit tests
+        run: ./vendor/bin/phpunit
+
+      # Steg 6: Kör statisk analys med PHPStan
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse src --level max
+
+      # Steg 7: Kör kodstilskontroll med PHP_CodeSniffer
+      - name: Run PHP CodeSniffer
+        run: ./vendor/bin/phpcs --standard=PSR12 src
