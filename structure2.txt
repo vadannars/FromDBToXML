@@ -24,6 +24,7 @@
 │   ├── app-2025-08-18.log
 │   └── app.log'
 ├── phpunit.xml
+├── projectinfo.txt
 ├── public
 │   ├── loanstatus.php
 │   └── logs
@@ -38,7 +39,6 @@
 │   ├── SierraApiClient.php
 │   └── XmlGenerator.php
 ├── structure2.txt
-├── structure.txt
 ├── testresponse.json
 ├── tests
 │   ├── SierraApiClientTest.php

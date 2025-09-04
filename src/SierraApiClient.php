@@ -6,6 +6,12 @@ namespace App;
 use App\HttpClientInterface;
 use App\Config;
 
+/**
+ * Klient för att interagera med Sierra API:et.
+ *
+ * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
+ * och hämtning av exemplar (items) baserat på olika identifierare.
+ */
 class SierraApiClient {
     private string $baseUrl;
     private string $apiKey;
@@ -21,6 +27,13 @@ class SierraApiClient {
     private ?int $expiresAt;
     private HttpClientInterface $httpClient;
 
+    /**
+     * Skapar en ny instans av SierraApiClient.
+     *
+     * @param Config $config En konfigurationsobjekt med API-uppgifter.
+     * @param HttpClientInterface $httpClient En HTTP-klientimplementering (t.ex. GuzzleHttpClient).
+     */
+
     public function __construct(Config $config, HttpClientInterface $httpClient) {
         $this->baseUrl = rtrim($config->getApiBaseUrl(), '/');
         $this->apiKey = $config->getApiKey();
@@ -34,6 +47,12 @@ class SierraApiClient {
         $this->httpClient = $httpClient;
     }
 
+    /**
+     * Hämtar en API-token och hanterar caching för att undvika onödiga autentiseringar.
+     *
+     * @return string Den giltiga API-token.
+     * @throws \RuntimeException Om autentiseringen misslyckas.
+     */
     private function getToken(): string {
         if ($this->token !== null && $this->expiresAt !== null && time() < ($this->expiresAt - 10)) {
             return $this->token;
@@ -48,6 +67,11 @@ class SierraApiClient {
         return $this->token;
     }
 
+    /**
+     * Autentiserar mot Sierra API:et för att hämta en ny access-token.
+     *
+     * @throws \RuntimeException Om autentiseringen misslyckas.
+     */
     private function authenticate(): void {
         $url = $this->baseUrl . $this->tokenEndpoint;
         $headers = [
@@ -71,6 +95,13 @@ class SierraApiClient {
         $this->expiresAt = time() + (int)$data['expires_in'];
     }
 
+    /**
+     * Hämtar exemplar från Sierra API:et baserat på en eller flera identifierare.
+     *
+     * @param array<string, string|null> $identifiers En associativ array av identifierare (t.ex. 'bib_id', 'isbn').
+     * @return array<array<string, mixed>>|null En array av exemplarinformation, eller null om inga hittades.
+     * @throws \RuntimeException Om API-förfrågan misslyckas.
+     */
     public function getItemsForIdentifiers(array $identifiers): ?array {
         $token = $this->getToken();
         $bibQuery = $this->buildCombinedQuery($identifiers);
@@ -121,6 +152,12 @@ class SierraApiClient {
         return $itemsData['entries'] ?? null;
     }
 
+    /**
+     * Bygger den kombinerade JSON-queryn för att söka efter bibliografiska poster.
+     *
+     * @param array<string, string|null> $identifiers An array of identifiers.
+     * @return array|null Den färdiga JSON-query-arrayen, eller null om inga giltiga identifierare finns.
+     */
     private function buildCombinedQuery(array $identifiers): ?array {
         $queryParts = [];
         $record = ['type' => 'bib'];

@@ -3,9 +3,20 @@ namespace App;
 
 use Dotenv\Dotenv;
 
+/**
+ * Hanterar applikationens konfiguration genom att läsa miljövariabler från en .env-fil.
+ *
+ * Denna klass ger en strukturerad åtkomst till konfigurationsvärden och ser till att
+ * de har rätt datatyp.
+ */
 class Config {
     private array $data;
 
+    /**
+     * Skapar en ny instans av Config och laddar miljövariabler.
+     *
+     * @param string $envPath Sökvägen till mappen där .env-filen finns.
+     */
     public function __construct($envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
         $dotenv->safeLoad();
@@ -38,8 +49,8 @@ class Config {
     /**
      * Parsar en sträng från .env-filen (t.ex. "tag:j") till en array.
      *
-     * @param string|null $fieldString
-     * @return array<string, string>|null
+     * @param string|null $fieldString Strängen som ska parsas.
+     * @return array<string, string>|null En associativ array med 'type' och 'value', eller null om strängen är ogiltig.
      */
     private function parseFieldString(?string $fieldString): ?array {
         if (empty($fieldString)) {

@@ -46,3 +46,28 @@ ErrorLog /dev/stderr
 CustomLog /dev/stdout combined
 
 Databasbehov: Inga behov
+
+# Nyckel, hemlighet och tillåtna domäner
+API_KEY=""
+API_SECRET=""
+ALLOWED_ORIGINS="https://libris.kb.se,http://localhost:80808,https://*.github.dev"
+
+# API-adress och endpoints
+API_BASE_URL="https://gotlib.goteborg.se/iii/sierra-api/v6"
+TOKEN_ENDPOINT="/token"
+QUERY_ENDPOINT="/bibs/query"
+ITEMS_ENDPOINT="/items"
+
+# Queryparametrar och Item-fields att hämta
+QUERY_OFFSET=0
+QUERY_LIMIT=10
+QUERY_LIBRIS_ID="tag:j"
+QUERY_ISBN="tag:i"
+QUERY_ISSN="marcTag:022"
+QUERY_ONR="marcTag:035"
+ITEM_FIELDS="location,callNumber,status"
+
+# App = active och loggninginställningar
+ACTIVE=true
+LOG_LEVEL=debug
+LOG_DESTINATION="__DIR__ . '/../logs/app.log'"

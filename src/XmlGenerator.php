@@ -1,7 +1,19 @@
 <?php
 namespace App;
 
+/**
+ * Genererar XML-utdata baserat på data från Sierra API:et.
+ *
+ * Denna klass är ansvarig för att transformera rå data till det
+ * specifika XML-format som krävs.
+ */
 class XmlGenerator {
+    /**
+     * Mappar statuskoder från Sierra till läsbara svenska texter.
+     *
+     * @param string $code Den korta statuskoden från API:et.
+     * @return string Den läsbara statusbeskrivningen.
+     */
     public static function mapStatus(string $code): string {
         $map = [
             '-' => 'Tillgänglig',
@@ -17,6 +29,12 @@ class XmlGenerator {
         return $map[$code] ?? 'Okänd status';
     }
 
+    /**
+     * Genererar en XML-sträng från en array av exemplarinformation.
+     *
+     * @param array<array<string, mixed>> $items En array med exemplarposter från API:et.
+     * @return string Den genererade XML-strängen.
+     */ 
     public static function generateXmlFromItems(array $items): string {
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
 
