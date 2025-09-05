@@ -22,42 +22,30 @@ class Config {
      */
     public function __construct(string $envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
-        $dotenv->safeLoad();
+        $this->data = $dotenv->safeLoad();
         
         $this->data = [
-            // Ändrad här för explicit cast
-            'api_key' => isset($_ENV['API_KEY']) ? (string) $_ENV['API_KEY'] : '',
-            // Ändrad här för explicit cast
-            'api_secret' => isset($_ENV['API_SECRET']) ? (string) $_ENV['API_SECRET'] : '',
-            // Ändrad här för explicit cast
-            'allowed_origins' => isset($_ENV['ALLOWED_ORIGINS']) ? (string) $_ENV['ALLOWED_ORIGINS'] : '',
-            // Ändrad här för explicit cast
-            'api_base_url' => isset($_ENV['API_BASE_URL']) ? (string) $_ENV['API_BASE_URL'] : '',
-            // Ändrad här för explicit cast
-            'token_endpoint' => isset($_ENV['TOKEN_ENDPOINT']) ? (string) $_ENV['TOKEN_ENDPOINT'] : '',
-            // Ändrad här för explicit cast
-            'query_endpoint' => isset($_ENV['QUERY_ENDPOINT']) ? (string) $_ENV['QUERY_ENDPOINT'] : '',
-            // Ändrad här för explicit cast
-            'items_endpoint' => isset($_ENV['ITEMS_ENDPOINT']) ? (string) $_ENV['ITEMS_ENDPOINT'] : '',
+            'api_key' => $this->data['API_KEY'] ?? '',
+            'api_secret' => $this->data['API_SECRET'] ?? '',
+            'allowed_origins' => $this->data['ALLOWED_ORIGINS'] ?? '',
+            'api_base_url' => $this->data['API_BASE_URL'] ?? '',
+            'token_endpoint' => $this->data['TOKEN_ENDPOINT'] ?? '',
+            'query_endpoint' => $this->data['QUERY_ENDPOINT'] ?? '',
+            'items_endpoint' => $this->data['ITEMS_ENDPOINT'] ?? '',
             'query_parameters' => [
-                'offset' => (isset($_ENV['QUERY_OFFSET']) && is_numeric($_ENV['QUERY_OFFSET'])) ? (int) $_ENV['QUERY_OFFSET'] : 0,
-                'limit' => (isset($_ENV['QUERY_LIMIT']) && is_numeric($_ENV['QUERY_LIMIT'])) ? (int) $_ENV['QUERY_LIMIT'] : 10
+                'offset' => (isset($this->data['QUERY_OFFSET']) && is_numeric($this->data['QUERY_OFFSET'])) ? (int) $this->data['QUERY_OFFSET'] : 0,
+                'limit' => (isset($this->data['QUERY_LIMIT']) && is_numeric($this->data['QUERY_LIMIT'])) ? (int) $this->data['QUERY_LIMIT'] : 10
             ],
             'query_fields' => [
-                // Denna rad fungerar redan med explicit cast, men behålls för tydlighet.
-                'bib_id' => $this->parseFieldString(isset($_ENV['QUERY_LIBRIS_ID']) ? (string) $_ENV['QUERY_LIBRIS_ID'] : null),
-                'isbn' => $this->parseFieldString(isset($_ENV['QUERY_ISBN']) ? (string) $_ENV['QUERY_ISBN'] : null),
-                'issn' => $this->parseFieldString(isset($_ENV['QUERY_ISSN']) ? (string) $_ENV['QUERY_ISSN'] : null),
-                'onr' => $this->parseFieldString(isset($_ENV['QUERY_ONR']) ? (string) $_ENV['QUERY_ONR'] : null)
+                'bib_id' => $this->parseFieldString($this->data['QUERY_LIBRIS_ID'] ?? null),
+                'isbn' => $this->parseFieldString($this->data['QUERY_ISBN'] ?? null),
+                'issn' => $this->parseFieldString($this->data['QUERY_ISSN'] ?? null),
+                'onr' => $this->parseFieldString($this->data['QUERY_ONR'] ?? null)
             ],
-            // Ändrad här för explicit cast
-            'item_fields' => isset($_ENV['ITEM_FIELDS']) ? (string) $_ENV['ITEM_FIELDS'] : 'location,callNumber,status',
-            // Ändrad här för explicit cast
-            'active' => isset($_ENV['ACTIVE']) ? filter_var((string) $_ENV['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
-            // Ändrad här för explicit cast
-            'log_level' => isset($_ENV['LOG_LEVEL']) ? (string) $_ENV['LOG_LEVEL'] : 'debug',
-            // Ändrad här för explicit cast
-            'log_destination' => isset($_ENV['LOG_DESTINATION']) ? (string) $_ENV['LOG_DESTINATION'] : __DIR__ . '/../logs/app.log'
+            'item_fields' => $this->data['ITEM_FIELDS'] ?? 'location,callNumber,status',
+            'active' => (isset($this->data['ACTIVE']) && is_string($this->data['ACTIVE'])) ? filter_var($this->data['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
+            'log_level' => $this->data['LOG_LEVEL'] ?? 'debug',
+            'log_destination' => $this->data['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
         ];
     }
     
@@ -76,8 +64,8 @@ class Config {
             return null;
         }
         return [
-            'type' => (string) $parts[0],
-            'value' => (string) $parts[1]
+            'type' => $parts[0],
+            'value' => $parts[1]
         ];
     }
 
