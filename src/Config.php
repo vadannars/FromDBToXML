@@ -81,8 +81,8 @@ class Config {
     }
 
     public function getAllowedOrigins(): string {
-        $value = $this->get('allowed_origins');
-        return is_string($value) ? $value : (string) $value;
+        $value = $this->get('allowed_origins', '');
+        return is_string($value) ? $value : '';
     }
     
     public function getApiBaseUrl(): string {
@@ -121,7 +121,7 @@ class Config {
     }
 
     public function getLogLevel(): string {
-        $value = $this->get('log_level', 'debug'); // Explicit default value
+        $value = $this->get('log_level', 'debug');
         return is_string($value) ? strtolower($value) : 'debug';
     }
 
@@ -139,15 +139,39 @@ class Config {
      * @return array<string, int>
      */
     public function getQueryParameters(): array {
-        $value = $this->get('query_parameters', []);
-        return is_array($value) ? $value : [];
+        /** @var mixed $params */
+        $params = $this->get('query_parameters', []);
+        
+        $sanitized = [];
+        if (is_array($params)) {
+            foreach ($params as $key => $value) {
+                if (is_string($key) && is_int($value)) {
+                    $sanitized[$key] = $value;
+                }
+            }
+        }
+        return $sanitized;
     }
     
     /**
      * @return array<string, array<string, string>|null>
      */
     public function getQueryFields(): array {
-        $value = $this->get('query_fields', []);
-        return is_array($value) ? $value : [];
+        /** @var mixed $fields */
+        $fields = $this->get('query_fields', []);
+        
+        $sanitized = [];
+        if (is_array($fields)) {
+            foreach ($fields as $key => $value) {
+                if (is_string($key)) {
+                    if (is_array($value) && isset($value['type'], $value['value']) && is_string($value['type']) && is_string($value['value'])) {
+                        $sanitized[$key] = $value;
+                    } elseif ($value === null) {
+                        $sanitized[$key] = null;
+                    }
+                }
+            }
+        }
+        return $sanitized;
     }
 }
