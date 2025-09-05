@@ -26,7 +26,7 @@ class XmlGenerator {
             'u' => 'Under arbete',
             'UNKNOWN' => 'Okänd status'
         ];
-        return $map[$code] ?? 'Okänd status';
+        return $map[(string)$code] ?? 'Okänd status'; // Se till att koden är en sträng
     }
 
     /**
@@ -47,26 +47,31 @@ class XmlGenerator {
         foreach ($items as $item) {
             $xmlItem = $itemInfo->addChild('Item');
             
-            // Defensiv typkontroll för att undvika PHPStan-fel
+            // Hantera statusdata mer robust
             $statusCode = 'UNKNOWN';
             $duedate = '';
 
             if (isset($item['status']) && is_array($item['status'])) {
                 $statusData = $item['status'];
-                if (isset($statusData['code'])) {
-                    $statusCode = (string) $statusData['code'];
+                if (isset($statusData['code']) && is_string($statusData['code'])) {
+                    $statusCode = $statusData['code'];
                 }
-                if (isset($statusData['duedate'])) {
-                    $duedate = (string) $statusData['duedate'];
+                if (isset($statusData['duedate']) && is_string($statusData['duedate'])) {
+                    $duedate = $statusData['duedate'];
                 }
             }
             
+            // Hantera platsdata mer robust
             $locationName = '';
-            if (isset($item['location']) && is_array($item['location']) && isset($item['location']['name'])) {
-                $locationName = (string) $item['location']['name'];
+            if (isset($item['location']) && is_array($item['location']) && isset($item['location']['name']) && is_string($item['location']['name'])) {
+                $locationName = $item['location']['name'];
             }
             
-            $callNumber = (string) ($item['callNumber'] ?? '');
+            // Hantera callNumber mer robust
+            $callNumber = '';
+            if (isset($item['callNumber']) && is_string($item['callNumber'])) {
+                $callNumber = $item['callNumber'];
+            }
 
             $statusCode = trim($statusCode);
             $statusText = '-';
@@ -88,6 +93,7 @@ class XmlGenerator {
             ];
 
             foreach ($fields as $tag => $value) {
+                // Se till att värdet är en sträng innan det läggs till i XML
                 $xmlItem->addChild($tag, htmlspecialchars((string)$value));
             }
         }

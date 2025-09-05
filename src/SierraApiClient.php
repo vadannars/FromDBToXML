@@ -187,7 +187,17 @@ class SierraApiClient {
         $entries = [];
         foreach ($itemsData['entries'] as $entry) {
             if (is_array($entry)) {
-                $entries[] = $entry;
+                // Säkerställ att den inre arrayen har strängnycklar
+                /** @var array<string, mixed> $typedEntry */
+                $typedEntry = [];
+                foreach ($entry as $key => $value) {
+                    if (is_string($key)) {
+                        $typedEntry[$key] = $value;
+                    }
+                }
+                if (!empty($typedEntry)) {
+                    $entries[] = $typedEntry;
+                }
             }
         }
         
@@ -213,7 +223,7 @@ class SierraApiClient {
             if ($field !== null && isset($identifiers[$priorityKey])) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
-                    ['tag' => $field['value']],
+                    ['tag' => $field['value']], // Antag att 'tag' är den korrekta nyckeln här. Om inte, justera.
                     (string) $identifiers[$priorityKey]
                 );
             }
@@ -225,7 +235,7 @@ class SierraApiClient {
             }
             $queryParts[] = $this->makeFieldQuery(
                 $record,
-                ['marcTag' => '035'],
+                ['marcTag' => '035'], // Antag att 'marcTag' och '035' är korrekta här. Justera vid behov.
                 (string) $identifiers['onr']
             );
         }
