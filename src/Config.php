@@ -22,30 +22,30 @@ class Config {
      */
     public function __construct(string $envPath) {
         $dotenv = Dotenv::createImmutable($envPath);
-        $this->data = $dotenv->safeLoad();
+        $env = $dotenv->safeLoad();
         
         $this->data = [
-            'api_key' => (string) ($this->data['API_KEY'] ?? ''),
-            'api_secret' => (string) ($this->data['API_SECRET'] ?? ''),
-            'allowed_origins' => (string) ($this->data['ALLOWED_ORIGINS'] ?? ''),
-            'api_base_url' => (string) ($this->data['API_BASE_URL'] ?? ''),
-            'token_endpoint' => (string) ($this->data['TOKEN_ENDPOINT'] ?? ''),
-            'query_endpoint' => (string) ($this->data['QUERY_ENDPOINT'] ?? ''),
-            'items_endpoint' => (string) ($this->data['ITEMS_ENDPOINT'] ?? ''),
+            'api_key' => (string) ($env['API_KEY'] ?? ''),
+            'api_secret' => (string) ($env['API_SECRET'] ?? ''),
+            'allowed_origins' => (string) ($env['ALLOWED_ORIGINS'] ?? ''),
+            'api_base_url' => (string) ($env['API_BASE_URL'] ?? ''),
+            'token_endpoint' => (string) ($env['TOKEN_ENDPOINT'] ?? ''),
+            'query_endpoint' => (string) ($env['QUERY_ENDPOINT'] ?? ''),
+            'items_endpoint' => (string) ($env['ITEMS_ENDPOINT'] ?? ''),
             'query_parameters' => [
-                'offset' => (int) ($this->data['QUERY_OFFSET'] ?? 0),
-                'limit' => (int) ($this->data['QUERY_LIMIT'] ?? 10)
+                'offset' => (int) ($env['QUERY_OFFSET'] ?? 0),
+                'limit' => (int) ($env['QUERY_LIMIT'] ?? 10)
             ],
             'query_fields' => [
-                'bib_id' => $this->parseFieldString($this->data['QUERY_LIBRIS_ID'] ?? null),
-                'isbn' => $this->parseFieldString($this->data['QUERY_ISBN'] ?? null),
-                'issn' => $this->parseFieldString($this->data['QUERY_ISSN'] ?? null),
-                'onr' => $this->parseFieldString($this->data['QUERY_ONR'] ?? null)
+                'bib_id' => $this->parseFieldString($env['QUERY_LIBRIS_ID'] ?? null),
+                'isbn' => $this->parseFieldString($env['QUERY_ISBN'] ?? null),
+                'issn' => $this->parseFieldString($env['QUERY_ISSN'] ?? null),
+                'onr' => $this->parseFieldString($env['QUERY_ONR'] ?? null)
             ],
-            'item_fields' => (string) ($this->data['ITEM_FIELDS'] ?? 'location,callNumber,status'),
-            'active' => filter_var($this->data['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
-            'log_level' => (string) ($this->data['LOG_LEVEL'] ?? 'debug'),
-            'log_destination' => (string) ($this->data['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log')
+            'item_fields' => (string) ($env['ITEM_FIELDS'] ?? 'location,callNumber,status'),
+            'active' => filter_var($env['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
+            'log_level' => (string) ($env['LOG_LEVEL'] ?? 'debug'),
+            'log_destination' => (string) ($env['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log')
         ];
     }
     
@@ -81,51 +81,73 @@ class Config {
     }
 
     public function getAllowedOrigins(): string {
-        return (string) $this->get('allowed_origins', '');
+        $value = $this->get('allowed_origins', '');
+        return is_string($value) ? $value : (string) $value;
     }
     
     public function getApiBaseUrl(): string {
-        return rtrim((string) $this->get('api_base_url'), '/');
+        $value = $this->get('api_base_url');
+        return is_string($value) ? rtrim($value, '/') : '';
     }
+
     public function getApiKey(): string {
-        return (string) $this->get('api_key');
+        $value = $this->get('api_key');
+        return is_string($value) ? $value : '';
     }
+
     public function getApiSecret(): string {
-        return (string) $this->get('api_secret');
+        $value = $this->get('api_secret');
+        return is_string($value) ? $value : '';
     }
+
     public function getTokenEndpoint(): string {
-        return (string) $this->get('token_endpoint');
+        $value = $this->get('token_endpoint');
+        return is_string($value) ? $value : '';
     }
+
     public function getQueryEndpoint(): string {
-        return (string) $this->get('query_endpoint');
+        $value = $this->get('query_endpoint');
+        return is_string($value) ? $value : '';
     }
+
     public function getItemsEndpoint(): string {
-        return (string) $this->get('items_endpoint');
+        $value = $this->get('items_endpoint');
+        return is_string($value) ? $value : '';
     }
+
     public function getItemFields(): string {
-        return (string) $this->get('item_fields');
+        $value = $this->get('item_fields');
+        return is_string($value) ? $value : '';
     }
+
     public function getLogLevel(): string {
-        return strtolower((string) $this->get('log_level', 'debug'));
+        $value = $this->get('log_level', 'debug');
+        return is_string($value) ? strtolower($value) : 'debug';
     }
+
     public function getLogDestination(): string {
-        return (string) $this->get('log_destination');
+        $value = $this->get('log_destination');
+        return is_string($value) ? $value : __DIR__ . '/../logs/app.log';
     }
+
     public function getActive(): bool {
-        return (bool) $this->get('active');
+        $value = $this->get('active');
+        return is_bool($value) ? $value : false;
     }
     
     /**
      * @return array<string, int>
      */
     public function getQueryParameters(): array {
-        return (array) $this->get('query_parameters', []);
+        $value = $this->get('query_parameters', []);
+        return is_array($value) ? $value : [];
     }
     
     /**
      * @return array<string, array<string, string>|null>
      */
     public function getQueryFields(): array {
-        return (array) $this->get('query_fields', []);
+        $value = $this->get('query_fields', []);
+        return is_array($value) ? $value : [];
     }
 }
