@@ -240,10 +240,14 @@ class SierraApiClient {
             );
         }
 
-        /** @var array<string, mixed> $result */
-        $result = ['queries' => $queryParts];
+        // Säkerställ att returtypen är korrekt specificerad för PHPStan
+        if (empty($queryParts)) {
+            return null;
+        }
 
-        return empty($queryParts) ? null : $result;
+        /** @var array<string, mixed> $finalQuery */
+        $finalQuery = ['queries' => $queryParts];
+        return $finalQuery;
     }
 
     /**
