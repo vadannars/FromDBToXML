@@ -60,6 +60,13 @@ class XmlGenerator {
                     $duedate = (string) $statusData['duedate'];
                 }
             }
+            
+            $locationName = '';
+            if (isset($item['location']) && is_array($item['location']) && isset($item['location']['name'])) {
+                $locationName = (string) $item['location']['name'];
+            }
+            
+            $callNumber = (string) ($item['callNumber'] ?? '');
 
             $statusCode = trim($statusCode);
             $statusText = '-';
@@ -71,8 +78,8 @@ class XmlGenerator {
 
             $fields = [
                 'Item_No' => $counter++,
-                'Location' => (string) ($item['location']['name'] ?? ''),
-                'Call_No' => (string) ($item['callNumber'] ?? ''),
+                'Location' => $locationName,
+                'Call_No' => $callNumber,
                 'Status' => $statusText,
                 'Status_date' => $duedate,
                 'Status_Date_Description' => ($statusCode === '-' && $duedate !== '') ? 'ÅTER ' : '',

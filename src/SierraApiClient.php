@@ -7,7 +7,7 @@ use App\HttpClientInterface;
 use App\Config;
 
 /**
- * Klient för att interagera med Sierra API:et.
+ * Klient för att interagerar med Sierra API:et.
  *
  * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
  * och hämtning av exemplar (items) baserat på olika identifierare.
@@ -92,14 +92,20 @@ class SierraApiClient {
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
         }
 
-        /** @var array<string, mixed> $data */
-        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !isset($decodedResponse['expires_in'])) {
-            throw new \RuntimeException("Token saknas i autentiseringssvaret.");
+        if (!is_array($decodedResponse)) {
+            throw new \RuntimeException("Ogiltigt JSON-svar från autentiseringen.");
         }
+
+        /** @var array<string, mixed> $data */
         $data = $decodedResponse;
         
-        $this->token = (string) $data['access_token'];
-        $this->expiresAt = time() + (int) $data['expires_in'];
+        if (!array_key_exists('access_token', $data) || !is_string($data['access_token']) ||
+            !array_key_exists('expires_in', $data) || !is_int($data['expires_in'])) {
+            throw new \RuntimeException("Token eller utgångsdatum saknas i autentiseringssvaret.");
+        }
+        
+        $this->token = $data['access_token'];
+        $this->expiresAt = time() + $data['expires_in'];
     }
 
     /**
@@ -140,10 +146,10 @@ class SierraApiClient {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
-        /** @var array<string, mixed> $bibData */
         if (!is_array($decodedBibResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
+        /** @var array<string, mixed> $bibData */
         $bibData = $decodedBibResponse;
         
         $bibIds = $this->extractBibIdsFromResponse($bibData);
@@ -166,15 +172,26 @@ class SierraApiClient {
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
         }
         
-        /** @var array<string, mixed> $itemsData */
         if (!is_array($decodedItemsResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
+
+        /** @var array<string, mixed> $itemsData */
         $itemsData = $decodedItemsResponse;
 
-        /** @var array<array<string, mixed>>|null $entries */
-        $entries = $itemsData['entries'] ?? null;
-        return is_array($entries) ? $entries : null;
+        if (!array_key_exists('entries', $itemsData) || !is_array($itemsData['entries'])) {
+            return null;
+        }
+        
+        /** @var array<array<string, mixed>> $entries */
+        $entries = [];
+        foreach ($itemsData['entries'] as $entry) {
+            if (is_array($entry)) {
+                $entries[] = $entry;
+            }
+        }
+        
+        return $entries;
     }
 
     /**
@@ -189,7 +206,6 @@ class SierraApiClient {
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
         
-        // Hitta den mest prioriterade söknyckeln (Libris.kb ID, ISBN, ISSN)
         $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
         
         if ($priorityKey !== null) {
@@ -197,24 +213,23 @@ class SierraApiClient {
             if ($field !== null && isset($identifiers[$priorityKey])) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
-                    [$field['type'] => $field['value']],
+                    ['tag' => $field['value']],
                     (string) $identifiers[$priorityKey]
                 );
             }
         }
 
-        // Lägg till Onr som ett "eller"-alternativ om det finns
-        if (!empty($identifiers['onr']) && $fields['onr'] !== null) {
+        if (array_key_exists('onr', $identifiers) && !empty($identifiers['onr']) && array_key_exists('onr', $fields) && $fields['onr'] !== null) {
             if (!empty($queryParts)) {
                 $queryParts[] = 'or';
             }
             $queryParts[] = $this->makeFieldQuery(
                 $record,
-                [$fields['onr']['type'] => $fields['onr']['value']],
+                ['marcTag' => '035'],
                 (string) $identifiers['onr']
             );
         }
-        
+
         return empty($queryParts) ? null : ['queries' => $queryParts];
     }
 
@@ -257,7 +272,7 @@ class SierraApiClient {
      * @return array<int, string>|null
      */
     private function extractBibIdsFromResponse(array $data): ?array {
-        if (!isset($data['entries']) || !is_array($data['entries'])) {
+        if (!array_key_exists('entries', $data) || !is_array($data['entries'])) {
             return null;
         }
         
