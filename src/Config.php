@@ -82,7 +82,7 @@ class Config {
 
     public function getAllowedOrigins(): string {
         $value = $this->get('allowed_origins', '');
-        return is_string($value) ? $value : (string) $value;
+        return (string) $value;
     }
     
     public function getApiBaseUrl(): string {
@@ -92,42 +92,42 @@ class Config {
 
     public function getApiKey(): string {
         $value = $this->get('api_key');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getApiSecret(): string {
         $value = $this->get('api_secret');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getTokenEndpoint(): string {
         $value = $this->get('token_endpoint');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getQueryEndpoint(): string {
         $value = $this->get('query_endpoint');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getItemsEndpoint(): string {
         $value = $this->get('items_endpoint');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getItemFields(): string {
         $value = $this->get('item_fields');
-        return is_string($value) ? $value : '';
+        return (string) $value;
     }
 
     public function getLogLevel(): string {
         $value = $this->get('log_level', 'debug');
-        return is_string($value) ? strtolower($value) : 'debug';
+        return (string) $value;
     }
 
     public function getLogDestination(): string {
         $value = $this->get('log_destination');
-        return is_string($value) ? $value : __DIR__ . '/../logs/app.log';
+        return (string) $value;
     }
 
     public function getActive(): bool {
@@ -139,17 +139,15 @@ class Config {
      * @return array<string, int>
      */
     public function getQueryParameters(): array {
-        /** @var array<string, int> $params */
         $params = $this->get('query_parameters', []);
-        return is_array($params) ? $params : [];
+        return (array) $params;
     }
     
     /**
      * @return array<string, array<string, string>|null>
      */
     public function getQueryFields(): array {
-        /** @var array<string, array<string, string>|null> $fields */
         $fields = $this->get('query_fields', []);
-        return is_array($fields) ? $fields : [];
+        return (array) $fields;
     }
 }

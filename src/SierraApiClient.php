@@ -19,12 +19,14 @@ class SierraApiClient {
     private string $tokenEndpoint;
     private string $queryEndpoint;
     private string $itemsEndpoint;
+    /** @var array<string, int> */
     private array $queryParameters;
+    /** @var array<string, array<string, string>|null> */
     private array $queryFields;
     private string $itemFields;
 
     private ?string $token = null;
-    private ?int $expiresAt;
+    private ?int $expiresAt = null;
     private HttpClientInterface $httpClient;
 
     /**
@@ -41,13 +43,8 @@ class SierraApiClient {
         $this->queryEndpoint = $config->getQueryEndpoint();
         $this->itemsEndpoint = $config->getItemsEndpoint();
 
-        /** @var array<string, int> $queryParameters */
-        $queryParameters = $config->getQueryParameters();
-        $this->queryParameters = $queryParameters;
-
-        /** @var array<string, array<string, string>|null> $queryFields */
-        $queryFields = $config->getQueryFields();
-        $this->queryFields = $queryFields;
+        $this->queryParameters = $config->getQueryParameters();
+        $this->queryFields = $config->getQueryFields();
         $this->itemFields = $config->getItemFields();
         $this->httpClient = $httpClient;
     }
@@ -88,11 +85,15 @@ class SierraApiClient {
 
         $response = $this->httpClient->request($url, 'POST', $headers, $body);
 
-        if ($response['status'] !== 200) {
-            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
+        $status = (int) ($response['status'] ?? 0);
+        $error = (string) ($response['error'] ?? '');
+        $res = (string) ($response['response'] ?? '');
+
+        if ($status !== 200) {
+            throw new \RuntimeException("Autentisering misslyckades: HTTP {$status} - {$error}");
         }
 
-        $data = json_decode($response['response'], true);
+        $data = json_decode($res, true);
         if (!is_array($data) || !isset($data['access_token']) || !isset($data['expires_in'])) {
             throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
@@ -130,12 +131,16 @@ class SierraApiClient {
         ];
 
         $bibResponse = $this->httpClient->request($bibUrl, 'POST', $headers, $jsonQuery);
+        $bibStatus = (int) ($bibResponse['status'] ?? 0);
+        $bibError = (string) ($bibResponse['error'] ?? '');
+        $bibRes = (string) ($bibResponse['response'] ?? '');
 
-        if ($bibResponse['status'] !== 200) {
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
+        if ($bibStatus !== 200) {
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibStatus} - {$bibError}");
         }
 
-        $bibData = json_decode($bibResponse['response'], true);
+        /** @var array<string, mixed> $bibData */
+        $bibData = json_decode($bibRes, true);
         if (!is_array($bibData)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
@@ -151,16 +156,22 @@ class SierraApiClient {
         
         $itemsUrl = $this->baseUrl . $this->itemsEndpoint . '?' . $itemParams;
         $itemsResponse = $this->httpClient->request($itemsUrl, 'GET', $headers);
+        $itemsStatus = (int) ($itemsResponse['status'] ?? 0);
+        $itemsError = (string) ($itemsResponse['error'] ?? '');
+        $itemsRes = (string) ($itemsResponse['response'] ?? '');
 
-        if ($itemsResponse['status'] !== 200) {
-            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
+        if ($itemsStatus !== 200) {
+            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsStatus} - {$itemsError}");
         }
 
-        $itemsData = json_decode($itemsResponse['response'], true);
+        /** @var array<string, mixed> $itemsData */
+        $itemsData = json_decode($itemsRes, true);
         if (!is_array($itemsData)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
-        return $itemsData['entries'] ?? null;
+        /** @var array<array<string, mixed>>|null $entries */
+        $entries = $itemsData['entries'] ?? null;
+        return $entries;
     }
 
     /**
@@ -179,24 +190,28 @@ class SierraApiClient {
         
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
-            $queryParts[] = $this->makeFieldQuery(
-                $record,
-                [$field['type'] => $field['value']],
-                $identifiers[$priorityKey]
-            );
+            if ($field !== null) {
+                $queryParts[] = $this->makeFieldQuery(
+                    $record,
+                    [$field['type'] => $field['value']],
+                    (string) $identifiers[$priorityKey]
+                );
+            }
         }
 
         // Lägg till Onr som ett "eller"-alternativ om det finns
         if (!empty($identifiers['onr']) && isset($fields['onr'])) {
-            if (!empty($queryParts)) {
-                $queryParts[] = 'or';
-            }
             $field = $fields['onr'];
-            $queryParts[] = $this->makeFieldQuery(
-                $record,
-                [$field['type'] => $field['value']],
-                $identifiers['onr']
-            );
+            if ($field !== null) {
+                if (!empty($queryParts)) {
+                    $queryParts[] = 'or';
+                }
+                $queryParts[] = $this->makeFieldQuery(
+                    $record,
+                    [$field['type'] => $field['value']],
+                    (string) $identifiers['onr']
+                );
+            }
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
