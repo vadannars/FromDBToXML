@@ -89,14 +89,18 @@ class SierraApiClient {
         $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
-            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
+            // Säkerställ att $response['error'] är en sträng, annars använd ett standardmeddelande.
+            $errorMessage = isset($response['error']) && is_string($response['error']) ? $response['error'] : 'Okänd felorsak vid autentisering';
+            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !isset($decodedResponse['expires_in'])) {
-            throw new \RuntimeException("Token saknas i autentiseringssvaret.");
+        // Kontrollera om nycklarna finns och har rätt typ innan de används.
+        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !is_string($decodedResponse['access_token']) || !isset($decodedResponse['expires_in']) || !is_int($decodedResponse['expires_in'])) {
+            throw new \RuntimeException("Ogiltigt eller ofullständigt svar från autentiseringen.");
         }
-        $this->token = (string) $decodedResponse['access_token'];
-        $this->expiresAt = time() + (int) $decodedResponse['expires_in'];
+        
+        $this->token = $decodedResponse['access_token'];
+        $this->expiresAt = time() + $decodedResponse['expires_in'];
     }
 
     /**
@@ -134,7 +138,8 @@ class SierraApiClient {
         $decodedBibResponse = json_decode($bibResponse['response'], true);
 
         if ($bibResponse['status'] !== 200) {
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
+            $errorMessage = isset($bibResponse['error']) && is_string($bibResponse['error']) ? $bibResponse['error'] : 'Okänd felorsak vid bibs-sökning';
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
         }
 
         if (!is_array($decodedBibResponse)) {
@@ -160,7 +165,8 @@ class SierraApiClient {
         $decodedItemsResponse = json_decode($itemsResponse['response'], true);
         
         if ($itemsResponse['status'] !== 200) {
-            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
+            $errorMessage = isset($itemsResponse['error']) && is_string($itemsResponse['error']) ? $itemsResponse['error'] : 'Okänd felorsak vid items-hämtning';
+            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
         
         if (!is_array($decodedItemsResponse)) {
@@ -169,9 +175,30 @@ class SierraApiClient {
         /** @var array<string, mixed> $itemsData */
         $itemsData = $decodedItemsResponse;
 
-        /** @var array<array<string, mixed>>|null $entries */
+        // Använd null-coalescing operator för att hantera potentiellt saknade nycklar på ett säkrare sätt.
         $entries = $itemsData['entries'] ?? null;
-        return $entries;
+
+        // Säkerställ att entries är en array innan vi returnerar den.
+        if (!is_array($entries)) {
+            return null;
+        }
+
+        /** @var array<array<string, mixed>> $sanitizedEntries */
+        $sanitizedEntries = [];
+        foreach ($entries as $entry) {
+            if (is_array($entry)) {
+                $sanitizedEntry = [];
+                foreach ($entry as $key => $value) {
+                    // Säkerställ att nyckeln är en sträng.
+                    if (is_string($key)) {
+                        $sanitizedEntry[$key] = $value;
+                    }
+                }
+                $sanitizedEntries[] = $sanitizedEntry;
+            }
+        }
+        
+        return $sanitizedEntries;
     }
 
     /**
@@ -191,9 +218,10 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             if ($field !== null && isset($identifiers[$priorityKey])) {
+                // Säkerställ att $field['value'] är en sträng innan den används.
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
-                    ['tag' => $field['value']],
+                    ['tag' => (string) $field['value']],
                     (string) $identifiers[$priorityKey]
                 );
             }
@@ -203,23 +231,30 @@ class SierraApiClient {
             if (!empty($queryParts)) {
                 $queryParts[] = 'or';
             }
+            // Säkerställ att $fields['onr']['marcTag'] är en sträng.
+            $marcTag = $fields['onr']['marcTag'] ?? ''; 
             $queryParts[] = $this->makeFieldQuery(
                 $record,
-                ['marcTag' => '035'],
+                ['marcTag' => (string) $marcTag],
                 (string) $identifiers['onr']
             );
         }
 
-        // Säkerställ att returtypen är korrekt specificerad för PHPStan
         if (empty($queryParts)) {
             return null;
         }
 
         /** @var array<string, mixed> $finalQuery */
         $finalQuery = ['queries' => $queryParts];
-        return $finalQuery; // Endast en return-sats här
+        return $finalQuery;
     }
 
+    /**
+     * @param array<string, mixed> $record
+     * @param array<string, string> $fieldKey
+     * @param string $value
+     * @return array<string, mixed>
+     */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
         return [
             'target' => [
@@ -241,7 +276,8 @@ class SierraApiClient {
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            if (isset($fields[$key]) && !empty($identifiers[$key])) {
+            // Säkerställ att nyckeln finns och har ett värde i både $fields och $identifiers.
+            if (isset($fields[$key]) && $fields[$key] !== null && isset($identifiers[$key]) && !empty($identifiers[$key])) {
                 return (string) $key;
             }
         }
@@ -263,7 +299,8 @@ class SierraApiClient {
             if (!is_array($entry)) {
                 continue;
             }
-            $link = (string) ($entry['link'] ?? '');
+            // Säkerställ att 'link' nyckeln finns och är en sträng.
+            $link = isset($entry['link']) && is_string($entry['link']) ? $entry['link'] : '';
             $id = $this->extractBibIdFromLink($link);
             if ($id !== null) {
                 $ids[] = $id;
