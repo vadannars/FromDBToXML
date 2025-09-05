@@ -10,9 +10,9 @@ interface HttpClientInterface
      *
      * @param string $url Den fullständiga URL:en.
      * @param string $method HTTP-metoden (t.ex. 'GET', 'POST').
-     * @param array $headers En array med HTTP-headers.
+     * @param array<string, string> $headers En array med HTTP-headers.
      * @param mixed $body Innehållet i förfrågan (för POST, PUT, etc.).
-     * @return array Innehåller 'status', 'response' och 'error'.
+     * @return array{status: int, response: string, error: string|null} Innehåller 'status', 'response' och 'error'.
      */
     public function request(string $url, string $method = 'GET', array $headers = [], $body = null): array;
 }

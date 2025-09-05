@@ -139,15 +139,17 @@ class Config {
      * @return array<string, int>
      */
     public function getQueryParameters(): array {
-        $value = $this->get('query_parameters', []);
-        return is_array($value) ? $value : [];
+        /** @var array<string, int> $params */
+        $params = $this->get('query_parameters', []);
+        return is_array($params) ? $params : [];
     }
     
     /**
      * @return array<string, array<string, string>|null>
      */
     public function getQueryFields(): array {
-        $value = $this->get('query_fields', []);
-        return is_array($value) ? $value : [];
+        /** @var array<string, array<string, string>|null> $fields */
+        $fields = $this->get('query_fields', []);
+        return is_array($fields) ? $fields : [];
     }
 }
