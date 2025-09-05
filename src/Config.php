@@ -25,16 +25,16 @@ class Config {
         $this->data = $dotenv->safeLoad();
         
         $this->data = [
-            'api_key' => $this->data['API_KEY'] ?? '',
-            'api_secret' => $this->data['API_SECRET'] ?? '',
-            'allowed_origins' => $this->data['ALLOWED_ORIGINS'] ?? '',
-            'api_base_url' => $this->data['API_BASE_URL'] ?? '',
-            'token_endpoint' => $this->data['TOKEN_ENDPOINT'] ?? '',
-            'query_endpoint' => $this->data['QUERY_ENDPOINT'] ?? '',
-            'items_endpoint' => $this->data['ITEMS_ENDPOINT'] ?? '',
+            'api_key' => (string) ($this->data['API_KEY'] ?? ''),
+            'api_secret' => (string) ($this->data['API_SECRET'] ?? ''),
+            'allowed_origins' => (string) ($this->data['ALLOWED_ORIGINS'] ?? ''),
+            'api_base_url' => (string) ($this->data['API_BASE_URL'] ?? ''),
+            'token_endpoint' => (string) ($this->data['TOKEN_ENDPOINT'] ?? ''),
+            'query_endpoint' => (string) ($this->data['QUERY_ENDPOINT'] ?? ''),
+            'items_endpoint' => (string) ($this->data['ITEMS_ENDPOINT'] ?? ''),
             'query_parameters' => [
-                'offset' => (isset($this->data['QUERY_OFFSET']) && is_numeric($this->data['QUERY_OFFSET'])) ? (int) $this->data['QUERY_OFFSET'] : 0,
-                'limit' => (isset($this->data['QUERY_LIMIT']) && is_numeric($this->data['QUERY_LIMIT'])) ? (int) $this->data['QUERY_LIMIT'] : 10
+                'offset' => (int) ($this->data['QUERY_OFFSET'] ?? 0),
+                'limit' => (int) ($this->data['QUERY_LIMIT'] ?? 10)
             ],
             'query_fields' => [
                 'bib_id' => $this->parseFieldString($this->data['QUERY_LIBRIS_ID'] ?? null),
@@ -42,10 +42,10 @@ class Config {
                 'issn' => $this->parseFieldString($this->data['QUERY_ISSN'] ?? null),
                 'onr' => $this->parseFieldString($this->data['QUERY_ONR'] ?? null)
             ],
-            'item_fields' => $this->data['ITEM_FIELDS'] ?? 'location,callNumber,status',
-            'active' => (isset($this->data['ACTIVE']) && is_string($this->data['ACTIVE'])) ? filter_var($this->data['ACTIVE'], FILTER_VALIDATE_BOOL) : false,
-            'log_level' => $this->data['LOG_LEVEL'] ?? 'debug',
-            'log_destination' => $this->data['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log'
+            'item_fields' => (string) ($this->data['ITEM_FIELDS'] ?? 'location,callNumber,status'),
+            'active' => filter_var($this->data['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
+            'log_level' => (string) ($this->data['LOG_LEVEL'] ?? 'debug'),
+            'log_destination' => (string) ($this->data['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log')
         ];
     }
     
