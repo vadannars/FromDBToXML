@@ -7,7 +7,7 @@ use App\HttpClientInterface;
 use App\Config;
 
 /**
- * Klient för att interagerar med Sierra API:et.
+ * Klient för att interagera med Sierra API:et.
  *
  * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
  * och hämtning av exemplar (items) baserat på olika identifierare.
@@ -89,25 +89,14 @@ class SierraApiClient {
         $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
-            // Säkerställ att $response['error'] är en sträng
-            $errorMessage = is_string($response['error']) ? $response['error'] : 'Okänd felorsak';
-            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
+            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
         }
 
-        if (!is_array($decodedResponse)) {
-            throw new \RuntimeException("Ogiltigt JSON-svar från autentiseringen.");
+        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !isset($decodedResponse['expires_in'])) {
+            throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
-
-        /** @var array<string, mixed> $data */
-        $data = $decodedResponse;
-        
-        if (!array_key_exists('access_token', $data) || !is_string($data['access_token']) ||
-            !array_key_exists('expires_in', $data) || !is_int($data['expires_in'])) {
-            throw new \RuntimeException("Token eller utgångsdatum saknas i autentiseringssvaret.");
-        }
-        
-        $this->token = $data['access_token'];
-        $this->expiresAt = time() + $data['expires_in'];
+        $this->token = (string) $decodedResponse['access_token'];
+        $this->expiresAt = time() + (int) $decodedResponse['expires_in'];
     }
 
     /**
@@ -145,8 +134,7 @@ class SierraApiClient {
         $decodedBibResponse = json_decode($bibResponse['response'], true);
 
         if ($bibResponse['status'] !== 200) {
-            $errorMessage = is_string($bibResponse['error']) ? $bibResponse['error'] : 'Okänd felorsak';
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
         if (!is_array($decodedBibResponse)) {
@@ -172,35 +160,17 @@ class SierraApiClient {
         $decodedItemsResponse = json_decode($itemsResponse['response'], true);
         
         if ($itemsResponse['status'] !== 200) {
-            $errorMessage = is_string($itemsResponse['error']) ? $itemsResponse['error'] : 'Okänd felorsak';
-            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
+            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
         }
         
         if (!is_array($decodedItemsResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
-
         /** @var array<string, mixed> $itemsData */
         $itemsData = $decodedItemsResponse;
 
-        if (!array_key_exists('entries', $itemsData) || !is_array($itemsData['entries'])) {
-            return null;
-        }
-        
-        /** @var array<array<string, mixed>> $entries */
-        $entries = [];
-        foreach ($itemsData['entries'] as $entry) {
-            if (is_array($entry)) {
-                $sanitizedEntry = [];
-                foreach ($entry as $key => $value) {
-                    if (is_string($key)) {
-                        $sanitizedEntry[$key] = $value;
-                    }
-                }
-                $entries[] = $sanitizedEntry;
-            }
-        }
-        
+        /** @var array<array<string, mixed>>|null $entries */
+        $entries = $itemsData['entries'] ?? null;
         return $entries;
     }
 
@@ -240,19 +210,16 @@ class SierraApiClient {
             );
         }
 
+        // Säkerställ att returtypen är korrekt specificerad för PHPStan
         if (empty($queryParts)) {
             return null;
         }
 
-        return ['queries' => $queryParts];
+        /** @var array<string, mixed> $finalQuery */
+        $finalQuery = ['queries' => $queryParts];
+        return $finalQuery; // Endast en return-sats här
     }
 
-    /**
-     * @param array<string, string> $record
-     * @param array<string, string> $fieldKey
-     * @param string $value
-     * @return array<string, mixed>
-     */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
         return [
             'target' => [
@@ -286,11 +253,12 @@ class SierraApiClient {
      * @return array<int, string>|null
      */
     private function extractBibIdsFromResponse(array $data): ?array {
-        if (!array_key_exists('entries', $data) || !is_array($data['entries'])) {
+        if (!isset($data['entries']) || !is_array($data['entries'])) {
             return null;
         }
         
         $ids = [];
+        /** @var mixed $entry */
         foreach ($data['entries'] as $entry) {
             if (!is_array($entry)) {
                 continue;
