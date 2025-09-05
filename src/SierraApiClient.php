@@ -84,18 +84,19 @@ class SierraApiClient {
         $body = "grant_type=client_credentials";
 
         $response = $this->httpClient->request($url, 'POST', $headers, $body);
+
+        /** @var mixed $decodedResponse */
+        $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
         }
 
-        /** @var array<string, mixed> $data */
-        $data = json_decode($response['response'], true);
-        if (!is_array($data) || !isset($data['access_token']) || !isset($data['expires_in'])) {
+        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !isset($decodedResponse['expires_in'])) {
             throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
-        $this->token = (string) $data['access_token'];
-        $this->expiresAt = time() + (int) $data['expires_in'];
+        $this->token = (string) $decodedResponse['access_token'];
+        $this->expiresAt = time() + (int) $decodedResponse['expires_in'];
     }
 
     /**
@@ -129,15 +130,19 @@ class SierraApiClient {
 
         $bibResponse = $this->httpClient->request($bibUrl, 'POST', $headers, $jsonQuery);
         
+        /** @var mixed $decodedBibResponse */
+        $decodedBibResponse = json_decode($bibResponse['response'], true);
+
         if ($bibResponse['status'] !== 200) {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
-        /** @var array<string, mixed> $bibData */
-        $bibData = json_decode($bibResponse['response'], true);
-        if (!is_array($bibData)) {
+        if (!is_array($decodedBibResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
+        /** @var array<string, mixed> $bibData */
+        $bibData = $decodedBibResponse;
+        
         $bibIds = $this->extractBibIdsFromResponse($bibData);
 
         if (empty($bibIds)) {
@@ -151,15 +156,19 @@ class SierraApiClient {
         $itemsUrl = $this->baseUrl . $this->itemsEndpoint . '?' . $itemParams;
         $itemsResponse = $this->httpClient->request($itemsUrl, 'GET', $headers);
         
+        /** @var mixed $decodedItemsResponse */
+        $decodedItemsResponse = json_decode($itemsResponse['response'], true);
+        
         if ($itemsResponse['status'] !== 200) {
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
         }
-
-        /** @var array<string, mixed> $itemsData */
-        $itemsData = json_decode($itemsResponse['response'], true);
-        if (!is_array($itemsData)) {
+        
+        if (!is_array($decodedItemsResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
+        /** @var array<string, mixed> $itemsData */
+        $itemsData = $decodedItemsResponse;
+
         /** @var array<array<string, mixed>>|null $entries */
         $entries = $itemsData['entries'] ?? null;
         return $entries;
@@ -191,18 +200,15 @@ class SierraApiClient {
         }
 
         // Lägg till Onr som ett "eller"-alternativ om det finns
-        if (!empty($identifiers['onr']) && isset($fields['onr'])) {
-            $field = $fields['onr'];
-            if ($field !== null && isset($identifiers['onr'])) {
-                if (!empty($queryParts)) {
-                    $queryParts[] = 'or';
-                }
-                $queryParts[] = $this->makeFieldQuery(
-                    $record,
-                    [$field['type'] => $field['value']],
-                    (string) $identifiers['onr']
-                );
+        if (!empty($identifiers['onr']) && $fields['onr'] !== null) {
+            if (!empty($queryParts)) {
+                $queryParts[] = 'or';
             }
+            $queryParts[] = $this->makeFieldQuery(
+                $record,
+                [$fields['onr']['type'] => $fields['onr']['value']],
+                (string) $identifiers['onr']
+            );
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
