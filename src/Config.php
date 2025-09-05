@@ -81,7 +81,7 @@ class Config {
     }
 
     public function getAllowedOrigins(): string {
-        $value = $this->get('allowed_origins', '');
+        $value = $this->get('allowed_origins');
         return is_string($value) ? $value : (string) $value;
     }
     
@@ -121,7 +121,7 @@ class Config {
     }
 
     public function getLogLevel(): string {
-        $value = $this->get('log_level', 'debug');
+        $value = $this->get('log_level', 'debug'); // Explicit default value
         return is_string($value) ? strtolower($value) : 'debug';
     }
 

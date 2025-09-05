@@ -85,17 +85,20 @@ class SierraApiClient {
 
         $response = $this->httpClient->request($url, 'POST', $headers, $body);
 
+        // Explicitly cast and check types for safety
         $status = (int) ($response['status'] ?? 0);
         $error = (string) ($response['error'] ?? '');
-        $res = (string) ($response['response'] ?? '');
+        $responseBody = (string) ($response['response'] ?? '');
+
 
         if ($status !== 200) {
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$status} - {$error}");
         }
 
-        $data = json_decode($res, true);
+        /** @var array<string, mixed> $data */
+        $data = json_decode($responseBody, true);
         if (!is_array($data) || !isset($data['access_token']) || !isset($data['expires_in'])) {
-            throw new \RuntimeException("Token saknas i autentiseringssvaret.");
+            throw new \RuntimeException("Token saknas eller har ogiltigt format i autentiseringssvaret.");
         }
         $this->token = (string) $data['access_token'];
         $this->expiresAt = time() + (int)$data['expires_in'];
@@ -131,16 +134,18 @@ class SierraApiClient {
         ];
 
         $bibResponse = $this->httpClient->request($bibUrl, 'POST', $headers, $jsonQuery);
+        
+        // Explicitly cast and check types for safety
         $bibStatus = (int) ($bibResponse['status'] ?? 0);
         $bibError = (string) ($bibResponse['error'] ?? '');
-        $bibRes = (string) ($bibResponse['response'] ?? '');
+        $bibResponseBody = (string) ($bibResponse['response'] ?? '');
 
         if ($bibStatus !== 200) {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibStatus} - {$bibError}");
         }
 
         /** @var array<string, mixed> $bibData */
-        $bibData = json_decode($bibRes, true);
+        $bibData = json_decode($bibResponseBody, true);
         if (!is_array($bibData)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
@@ -156,21 +161,38 @@ class SierraApiClient {
         
         $itemsUrl = $this->baseUrl . $this->itemsEndpoint . '?' . $itemParams;
         $itemsResponse = $this->httpClient->request($itemsUrl, 'GET', $headers);
+        
+        // Explicitly cast and check types for safety
         $itemsStatus = (int) ($itemsResponse['status'] ?? 0);
         $itemsError = (string) ($itemsResponse['error'] ?? '');
-        $itemsRes = (string) ($itemsResponse['response'] ?? '');
+        $itemsResponseBody = (string) ($itemsResponse['response'] ?? '');
 
         if ($itemsStatus !== 200) {
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsStatus} - {$itemsError}");
         }
 
         /** @var array<string, mixed> $itemsData */
-        $itemsData = json_decode($itemsRes, true);
+        $itemsData = json_decode($itemsResponseBody, true);
         if (!is_array($itemsData)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
+        
         /** @var array<array<string, mixed>>|null $entries */
         $entries = $itemsData['entries'] ?? null;
+        
+        // Ensure we return the correct type or null
+        if ($entries === null) {
+            return null;
+        }
+        
+        // Additional check to ensure the structure matches the return type hint
+        foreach ($entries as $entry) {
+            if (!is_array($entry)) {
+                 throw new \RuntimeException("Ogiltig dataformat i 'entries' från items-sökningen.");
+            }
+            // You could add more specific checks for keys within $entry if needed
+        }
+
         return $entries;
     }
 
@@ -185,31 +207,31 @@ class SierraApiClient {
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
         
-        // Hitta den mest prioriterade söknyckeln (Libris.kb ID, ISBN, ISSN)
         $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
         
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
-            if ($field !== null) {
+            // Ensure field is not null before accessing its properties
+            if ($field !== null && isset($field['type']) && isset($field['value'])) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     [$field['type'] => $field['value']],
-                    (string) $identifiers[$priorityKey]
+                    (string) $identifiers[$priorityKey] // Ensure value is string
                 );
             }
         }
 
-        // Lägg till Onr som ett "eller"-alternativ om det finns
         if (!empty($identifiers['onr']) && isset($fields['onr'])) {
             $field = $fields['onr'];
-            if ($field !== null) {
+            // Ensure field is not null before accessing its properties
+            if ($field !== null && isset($field['type']) && isset($field['value'])) {
                 if (!empty($queryParts)) {
                     $queryParts[] = 'or';
                 }
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     [$field['type'] => $field['value']],
-                    (string) $identifiers['onr']
+                    (string) $identifiers['onr'] // Ensure value is string
                 );
             }
         }
@@ -255,6 +277,7 @@ class SierraApiClient {
         }
         
         $ids = [];
+        // Ensure we are iterating over an array and each entry is also an array
         /** @var mixed $entry */
         foreach ($data['entries'] as $entry) {
             if (!is_array($entry)) {
@@ -267,7 +290,7 @@ class SierraApiClient {
             }
         }
         
-        return $ids ?: null;
+        return empty($ids) ? null : $ids;
     }
 
     private function extractBibIdFromLink(string $link): ?string {
