@@ -89,7 +89,9 @@ class SierraApiClient {
         $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
-            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
+            // Säkerställ att $response['error'] är en sträng
+            $errorMessage = is_string($response['error']) ? $response['error'] : 'Okänd felorsak';
+            throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
         if (!is_array($decodedResponse)) {
@@ -143,7 +145,8 @@ class SierraApiClient {
         $decodedBibResponse = json_decode($bibResponse['response'], true);
 
         if ($bibResponse['status'] !== 200) {
-            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
+            $errorMessage = is_string($bibResponse['error']) ? $bibResponse['error'] : 'Okänd felorsak';
+            throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
         }
 
         if (!is_array($decodedBibResponse)) {
@@ -169,7 +172,8 @@ class SierraApiClient {
         $decodedItemsResponse = json_decode($itemsResponse['response'], true);
         
         if ($itemsResponse['status'] !== 200) {
-            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
+            $errorMessage = is_string($itemsResponse['error']) ? $itemsResponse['error'] : 'Okänd felorsak';
+            throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
         
         if (!is_array($decodedItemsResponse)) {
