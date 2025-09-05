@@ -7,7 +7,7 @@ use App\HttpClientInterface;
 use App\Config;
 
 /**
- * Klient för att interagera med Sierra API:et.
+ * Klient för att interagerar med Sierra API:et.
  *
  * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
  * och hämtning av exemplar (items) baserat på olika identifierare.
@@ -143,7 +143,6 @@ class SierraApiClient {
         $decodedBibResponse = json_decode($bibResponse['response'], true);
 
         if ($bibResponse['status'] !== 200) {
-            // Här var det `$response` istället för `$bibResponse` som du noterade.
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
@@ -188,8 +187,13 @@ class SierraApiClient {
         $entries = [];
         foreach ($itemsData['entries'] as $entry) {
             if (is_array($entry)) {
-                // Säkerställer att varje enskild post är en array innan vi lägger till den
-                $entries[] = $entry;
+                $sanitizedEntry = [];
+                foreach ($entry as $key => $value) {
+                    if (is_string($key)) {
+                        $sanitizedEntry[$key] = $value;
+                    }
+                }
+                $entries[] = $sanitizedEntry;
             }
         }
         
@@ -212,27 +216,24 @@ class SierraApiClient {
         
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
-            if ($field !== null && is_array($field) && isset($identifiers[$priorityKey])) {
+            if ($field !== null && isset($identifiers[$priorityKey])) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
-                    ['tag' => $field['value']], // Förutsätter att field är array med 'value'
+                    ['tag' => $field['value']],
                     (string) $identifiers[$priorityKey]
                 );
             }
         }
 
         if (array_key_exists('onr', $identifiers) && !empty($identifiers['onr']) && array_key_exists('onr', $fields) && $fields['onr'] !== null) {
-            $onrField = $fields['onr'];
-            if (is_array($onrField) && isset($onrField['type'], $onrField['value'])) {
-                if (!empty($queryParts)) {
-                    $queryParts[] = 'or';
-                }
-                $queryParts[] = $this->makeFieldQuery(
-                    $record,
-                    [$onrField['type'] => $onrField['value']],
-                    (string) $identifiers['onr']
-                );
+            if (!empty($queryParts)) {
+                $queryParts[] = 'or';
             }
+            $queryParts[] = $this->makeFieldQuery(
+                $record,
+                ['marcTag' => '035'],
+                (string) $identifiers['onr']
+            );
         }
 
         return empty($queryParts) ? null : ['queries' => $queryParts];
@@ -265,8 +266,7 @@ class SierraApiClient {
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            // Kontrollerar att fältet faktiskt finns och att identifieraren är ifylld
-            if (array_key_exists($key, $fields) && $fields[$key] !== null && array_key_exists($key, $identifiers) && !empty($identifiers[$key])) {
+            if (isset($fields[$key]) && !empty($identifiers[$key])) {
                 return (string) $key;
             }
         }
@@ -283,13 +283,11 @@ class SierraApiClient {
         }
         
         $ids = [];
-        /** @var mixed $entry */
         foreach ($data['entries'] as $entry) {
             if (!is_array($entry)) {
                 continue;
             }
-            // Säkerställer att 'link' finns och är en sträng innan vi konverterar
-            $link = array_key_exists('link', $entry) && is_string($entry['link']) ? $entry['link'] : '';
+            $link = (string) ($entry['link'] ?? '');
             $id = $this->extractBibIdFromLink($link);
             if ($id !== null) {
                 $ids[] = $id;
