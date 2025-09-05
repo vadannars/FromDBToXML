@@ -240,7 +240,10 @@ class SierraApiClient {
             );
         }
 
-        return empty($queryParts) ? null : ['queries' => $queryParts];
+        /** @var array<string, mixed> $result */
+        $result = ['queries' => $queryParts];
+
+        return empty($queryParts) ? null : $result;
     }
 
     /**
