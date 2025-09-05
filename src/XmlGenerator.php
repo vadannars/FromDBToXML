@@ -26,7 +26,7 @@ class XmlGenerator {
             'u' => 'Under arbete',
             'UNKNOWN' => 'Okänd status'
         ];
-        return $map[(string)$code] ?? 'Okänd status'; // Se till att koden är en sträng
+        return $map[$code] ?? 'Okänd status';
     }
 
     /**
@@ -47,10 +47,12 @@ class XmlGenerator {
         foreach ($items as $item) {
             $xmlItem = $itemInfo->addChild('Item');
             
-            // Hantera statusdata mer robust
             $statusCode = 'UNKNOWN';
             $duedate = '';
+            $locationName = '';
+            $callNumber = '';
 
+            // Hantera statuskod och utlåningsdatum defensivt
             if (isset($item['status']) && is_array($item['status'])) {
                 $statusData = $item['status'];
                 if (isset($statusData['code']) && is_string($statusData['code'])) {
@@ -61,14 +63,12 @@ class XmlGenerator {
                 }
             }
             
-            // Hantera platsdata mer robust
-            $locationName = '';
+            // Hantera platsnamn defensivt
             if (isset($item['location']) && is_array($item['location']) && isset($item['location']['name']) && is_string($item['location']['name'])) {
                 $locationName = $item['location']['name'];
             }
             
-            // Hantera callNumber mer robust
-            $callNumber = '';
+            // Hantera anropsnummer defensivt
             if (isset($item['callNumber']) && is_string($item['callNumber'])) {
                 $callNumber = $item['callNumber'];
             }
@@ -93,7 +93,7 @@ class XmlGenerator {
             ];
 
             foreach ($fields as $tag => $value) {
-                // Se till att värdet är en sträng innan det läggs till i XML
+                // Säkerställer att värdet är en sträng innan vi använder htmlspecialchars
                 $xmlItem->addChild($tag, htmlspecialchars((string)$value));
             }
         }
