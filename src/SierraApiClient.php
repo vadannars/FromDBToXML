@@ -92,11 +92,14 @@ class SierraApiClient {
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$response['error']}");
         }
 
+        /** @var array<string, mixed> $data */
         if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !isset($decodedResponse['expires_in'])) {
             throw new \RuntimeException("Token saknas i autentiseringssvaret.");
         }
-        $this->token = (string) $decodedResponse['access_token'];
-        $this->expiresAt = time() + (int) $decodedResponse['expires_in'];
+        $data = $decodedResponse;
+        
+        $this->token = (string) $data['access_token'];
+        $this->expiresAt = time() + (int) $data['expires_in'];
     }
 
     /**
@@ -137,10 +140,10 @@ class SierraApiClient {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$bibResponse['error']}");
         }
 
+        /** @var array<string, mixed> $bibData */
         if (!is_array($decodedBibResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
-        /** @var array<string, mixed> $bibData */
         $bibData = $decodedBibResponse;
         
         $bibIds = $this->extractBibIdsFromResponse($bibData);
@@ -163,24 +166,25 @@ class SierraApiClient {
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$itemsResponse['error']}");
         }
         
+        /** @var array<string, mixed> $itemsData */
         if (!is_array($decodedItemsResponse)) {
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
-        /** @var array<string, mixed> $itemsData */
         $itemsData = $decodedItemsResponse;
 
         /** @var array<array<string, mixed>>|null $entries */
         $entries = $itemsData['entries'] ?? null;
-        return $entries;
+        return is_array($entries) ? $entries : null;
     }
 
     /**
      * Bygger den kombinerade JSON-queryn för att söka efter bibliografiska poster.
      *
      * @param array<string, string|null> $identifiers An array of identifiers.
-     * @return array|null Den färdiga JSON-query-arrayen, eller null om inga giltiga identifierare finns.
+     * @return array<string, mixed>|null Den färdiga JSON-query-arrayen, eller null om inga giltiga identifierare finns.
      */
     private function buildCombinedQuery(array $identifiers): ?array {
+        /** @var array<mixed> $queryParts */
         $queryParts = [];
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
@@ -210,10 +214,16 @@ class SierraApiClient {
                 (string) $identifiers['onr']
             );
         }
-
+        
         return empty($queryParts) ? null : ['queries' => $queryParts];
     }
 
+    /**
+     * @param array<string, string> $record
+     * @param array<string, string> $fieldKey
+     * @param string $value
+     * @return array<string, mixed>
+     */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
         return [
             'target' => [

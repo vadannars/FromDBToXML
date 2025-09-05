@@ -46,10 +46,22 @@ class XmlGenerator {
 
         foreach ($items as $item) {
             $xmlItem = $itemInfo->addChild('Item');
+            
+            // Defensiv typkontroll för att undvika PHPStan-fel
+            $statusCode = 'UNKNOWN';
+            $duedate = '';
 
-            $statusCode = trim((string) $item['status']['code'] ?? 'UNKNOWN');
-            $duedate = (string) $item['status']['duedate'] ?? '';
+            if (isset($item['status']) && is_array($item['status'])) {
+                $statusData = $item['status'];
+                if (isset($statusData['code'])) {
+                    $statusCode = (string) $statusData['code'];
+                }
+                if (isset($statusData['duedate'])) {
+                    $duedate = (string) $statusData['duedate'];
+                }
+            }
 
+            $statusCode = trim($statusCode);
             $statusText = '-';
             if ($statusCode === '-') {
                 $statusText = $duedate !== '' ? 'Utlånad' : 'Tillgänglig';
@@ -59,8 +71,8 @@ class XmlGenerator {
 
             $fields = [
                 'Item_No' => $counter++,
-                'Location' => (string) $item['location']['name'] ?? '',
-                'Call_No' => (string) $item['callNumber'] ?? '',
+                'Location' => (string) ($item['location']['name'] ?? ''),
+                'Call_No' => (string) ($item['callNumber'] ?? ''),
                 'Status' => $statusText,
                 'Status_date' => $duedate,
                 'Status_Date_Description' => ($statusCode === '-' && $duedate !== '') ? 'ÅTER ' : '',
