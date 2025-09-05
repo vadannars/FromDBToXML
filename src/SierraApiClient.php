@@ -207,7 +207,7 @@ class SierraApiClient {
     /**
      * Bygger den kombinerade JSON-queryn för att söka efter bibliografiska poster.
      *
-     * @param array<string, string|null> $identifiers An array of identifiers.
+     * @param array<string, string|null> $identifiers En array av identifierare.
      * @return array<string, mixed>|null Den färdiga JSON-query-arrayen, eller null om inga giltiga identifierare finns.
      */
     private function buildCombinedQuery(array $identifiers): ?array {
@@ -240,14 +240,11 @@ class SierraApiClient {
             );
         }
 
-        // Säkerställ att returtypen är korrekt specificerad för PHPStan
         if (empty($queryParts)) {
             return null;
         }
 
-        /** @var array<string, mixed> $finalQuery */
-        $finalQuery = ['queries' => $queryParts];
-        return $finalQuery;
+        return ['queries' => $queryParts];
     }
 
     /**
