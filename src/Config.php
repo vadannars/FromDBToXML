@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App;
 
 use Dotenv\Dotenv;
+use App\LoggerFactory;
 
 /**
  * Hanterar applikationens konfiguration genom att läsa miljövariabler från en .env-fil.
@@ -60,7 +61,7 @@ class Config {
             return null;
         }
         $parts = explode(':', $fieldString, 2);
-        if (count($parts) !== 2) {
+        if (count($parts) !== 2 || empty($parts[0]) || empty($parts[1])) {
             return null;
         }
         return [

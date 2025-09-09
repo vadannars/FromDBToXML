@@ -32,7 +32,6 @@
 ├── SECURITY.md
 ├── src
 │   ├── Config.php
-│   ├── CurlHttpClient.php
 │   ├── GuzzleHttpClient.php
 │   ├── HttpClientInterface.php
 │   ├── LoggerFactory.php
@@ -54,13 +53,15 @@
     ├── nikic
     ├── phar-io
     ├── phpoption
+    ├── phpstan
     ├── phpunit
     ├── psr
     ├── ralouphie
     ├── sebastian
+    ├── squizlabs
     ├── staabm
     ├── symfony
     ├── theseer
     └── vlucas
 
-25 directories, 38 files
+27 directories, 37 files

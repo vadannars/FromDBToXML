@@ -16,3 +16,4 @@
 [2025-08-29T10:52:38.180417+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
 [2025-08-29T10:52:39.811313+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
 [2025-09-02T10:11:07.120183+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-09-09T09:28:43.829856+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
