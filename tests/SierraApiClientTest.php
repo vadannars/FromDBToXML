@@ -7,6 +7,7 @@ use App\Config;
 use App\SierraApiClient;
 use App\HttpClientInterface;
 use PHPUnit\Framework\TestCase;
+use Monolog\Logger;
 
 class SierraApiClientTest extends TestCase
 {
@@ -46,6 +47,22 @@ class SierraApiClientTest extends TestCase
     }
 
     /**
+     * Skapar en mock av SierraApiClient med en inbyggd logger.
+     *
+     * @param HttpClientInterface $httpClient
+     * @return SierraApiClient
+     */
+    private function createSierraApiClient(HttpClientInterface $httpClient): SierraApiClient
+    {
+        // Skapar en riktig Monolog-logger.
+        return new SierraApiClient(
+            $this->createMockConfig(),
+            $httpClient,
+            new Logger('test')
+        );
+    }
+
+    /**
      * Testar att getItemsForIdentifiers() lyckas, vilket i sin tur triggar en lyckad autentisering
      * och sätter token och utgångstid.
      */
@@ -68,10 +85,7 @@ class SierraApiClientTest extends TestCase
             ->method('request')
             ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse);
         
-        $sierraClient = new SierraApiClient(
-            $this->createMockConfig(),
-            $mockHttpClient
-        );
+        $sierraClient = $this->createSierraApiClient($mockHttpClient);
 
         // === ACT ===
         $sierraClient->getItemsForIdentifiers(['isbn' => '978-3-16-148410-0']);
@@ -107,10 +121,7 @@ class SierraApiClientTest extends TestCase
             ->method('request')
             ->willReturn($failedAuthResponse);
 
-        $sierraClient = new SierraApiClient(
-            $this->createMockConfig(),
-            $mockHttpClient
-        );
+        $sierraClient = $this->createSierraApiClient($mockHttpClient);
         
         // === ASSERT (innan ACT) ===
         $this->expectException(\RuntimeException::class);
@@ -151,10 +162,7 @@ class SierraApiClientTest extends TestCase
             ->method('request')
             ->willReturnOnConsecutiveCalls($fakeAuthResponse, $fakeQueryResponse, $fakeItemsResponse);
 
-        $sierraClient = new SierraApiClient(
-            $this->createMockConfig(),
-            $mockHttpClient
-        );
+        $sierraClient = $this->createSierraApiClient($mockHttpClient);
         
         // === ACT ===
         $result = $sierraClient->getItemsForIdentifiers(['isbn' => '978-3-16-148410-0']);
@@ -172,10 +180,7 @@ class SierraApiClientTest extends TestCase
     {
         // === ARRANGE ===
         $mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $sierraClient = new SierraApiClient(
-            $this->createMockConfig(),
-            $mockHttpClient
-        );
+        $sierraClient = $this->createSierraApiClient($mockHttpClient);
         $reflection = new \ReflectionClass(SierraApiClient::class);
         $method = $reflection->getMethod('buildCombinedQuery');
         $method->setAccessible(true);
@@ -220,5 +225,21 @@ class SierraApiClientTest extends TestCase
             ]
         ];
         $this->assertEquals($expected3, $method->invoke($sierraClient, $identifiers3));
+        
+        // Exempel 4: Endast ONR (OR-logiken bör inte dyka upp)
+        $identifiers4 = ['onr' => '1234567'];
+        $expected4 = [
+            'queries' => [
+                [
+                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['marcTag' => '035'] ],
+                    'expr' => [ 'op' => 'equals', 'operands' => ['1234567'] ]
+                ]
+            ]
+        ];
+        $this->assertEquals($expected4, $method->invoke($sierraClient, $identifiers4));
+
+        // Exempel 5: Inga identifierare
+        $identifiers5 = ['isbn' => null, 'bib_id' => null, 'issn' => null, 'onr' => null];
+        $this->assertNull($method->invoke($sierraClient, $identifiers5));
     }
 }

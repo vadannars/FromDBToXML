@@ -98,7 +98,7 @@ try {
     $logger->info('API-anrop mottaget', ['params' => $identifiers]);
 
     $httpClient = new GuzzleHttpClient();
-    $apiClient = new SierraApiClient($config, $httpClient);
+    $apiClient = new SierraApiClient($config, $httpClient, $logger);
 
     $allItems = $apiClient->getItemsForIdentifiers($identifiers);
 
