@@ -100,15 +100,17 @@ class SierraApiClient {
         $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
-            // Säkerställ att $response['error'] är en sträng, annars använd ett standardmeddelande.
-            $errorMessage = isset($response['error']) && is_string($response['error']) ? $response['error'] : 'Okänd felorsak vid autentisering';
+            $errorMessage = 'Okänd felorsak vid autentisering';
+            if (is_array($response) && isset($response['error']) && is_string($response['error'])) {
+                $errorMessage = $response['error'];
+            }      
             $this->logger->error('Autentisering misslyckades.', ['status' => $response['status'], 'error' => $errorMessage]);
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        // Kontrollera om nycklarna finns och har rätt typ innan de används.
         if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !is_string($decodedResponse['access_token']) || !isset($decodedResponse['expires_in']) || !is_int($decodedResponse['expires_in'])) {
-            $this->logger->error('Ogiltigt eller ofullständigt svar från autentiseringen.', ['response' => $response['response']]);
+            $responseBodyContent = $response['response'] ?? 'Tomt svar';
+            $this->logger->error('Ogiltigt eller ofullständigt svar från autentiseringen.', ['response' => $responseBodyContent]);
             throw new \RuntimeException("Ogiltigt eller ofullständigt svar från autentiseringen.");
         }
         
@@ -160,7 +162,10 @@ class SierraApiClient {
         $decodedBibResponse = json_decode($bibResponse['response'], true);
 
         if ($bibResponse['status'] !== 200) {
-            $errorMessage = isset($bibResponse['error']) && is_string($bibResponse['error']) ? $bibResponse['error'] : 'Okänd felorsak vid bibs-sökning';
+            $errorMessage = 'Okänd felorsak vid bibs-sökning';
+            if (isset($bibResponse['error']) && is_string($bibResponse['error'])) {
+                $errorMessage = $bibResponse['error'];
+            }
             $this->logger->error('Bibs-sökning misslyckades.', ['status' => $bibResponse['status'], 'error' => $errorMessage]);
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
         }
@@ -197,7 +202,10 @@ class SierraApiClient {
         $decodedItemsResponse = json_decode($itemsResponse['response'], true);
         
         if ($itemsResponse['status'] !== 200) {
-            $errorMessage = isset($itemsResponse['error']) && is_string($itemsResponse['error']) ? $itemsResponse['error'] : 'Okänd felorsak vid items-hämtning';
+            $errorMessage = 'Okänd felorsak vid items-hämtning';
+            if (isset($itemsResponse['error']) && is_string($itemsResponse['error'])) {
+                $errorMessage = $itemsResponse['error'];
+            }
             $this->logger->error('Items-hämtning misslyckades.', ['status' => $itemsResponse['status'], 'error' => $errorMessage]);
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
@@ -255,18 +263,20 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            if ($field !== null && !empty($identifierValue)) {
+            if ($field !== null && is_array($field) && isset($field['type'], $field['value']) && is_string($field['type']) && is_string($field['value']) && is_string($identifierValue)) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     [(string) $field['type'] => (string) $field['value']],
-                    (string) $identifierValue
+                    $identifierValue
                 );
+            } else {
+                $this->logger->warning('Hoppar över skapande av primär fält-query pga ogiltiga data.', ['key' => $priorityKey, 'field' => $field, 'identifier' => $identifierValue]);
             }
         }
 
         if (array_key_exists('onr', $identifiers) && !empty($identifiers['onr'])) {
             $onrField = $fields['onr'] ?? null;
-            if ($onrField !== null && array_key_exists('type', $onrField) && array_key_exists('value', $onrField)) {
+            if ($onrField !== null && is_array($onrField) && isset($onrField['type'], $onrField['value']) && is_string($onrField['type']) && is_string($onrField['value']) && is_string($identifiers['onr'])) {
                 if (!empty($queryParts)) {
                     $queryParts[] = 'or';
                 }
@@ -274,7 +284,9 @@ class SierraApiClient {
                     $record,
                     [(string) $onrField['type'] => (string) $onrField['value']],
                     (string) $identifiers['onr']
-            );
+                );
+            } else {
+                $this->logger->warning('Hoppar över skapande av ONR-fält-query pga ogiltiga data.', ['onrField' => $onrField, 'identifier' => $identifiers['onr'] ?? null]);
             }
         }
 
@@ -295,6 +307,10 @@ class SierraApiClient {
      * @return array<string, mixed>
      */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
+        if (!is_array($fieldKey) || empty($fieldKey)) {
+            $this->logger->warning('Försök att skapa fält-query med ogiltig fältnyckel.');
+            return ['target' => [], 'expr' => ['op' => 'error', 'operands' => ['Invalid field key']]];
+        }
         return [
             'target' => [
                 'record' => $record,
