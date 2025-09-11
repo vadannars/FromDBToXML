@@ -17,3 +17,9 @@
 [2025-08-29T10:52:39.811313+00:00] app.ERROR: Fel i loanstatus.php {"message":"Inga exemplar hittades för mediet.","trace":"#0 {main}"} 
 [2025-09-02T10:11:07.120183+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
 [2025-09-09T09:28:43.829856+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-09-11T10:29:13.212381+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-09-11T10:29:13.279811+00:00] app.INFO: Hämtar ny API-token.  
+[2025-09-11T10:29:13.421457+00:00] app.INFO: Autentisering lyckades. {"expires_in":3600} 
+[2025-09-11T10:29:13.421562+00:00] app.DEBUG: Bygger JSON-query för bibs-sökning. {"query":{"queries":[{"target":{"record":{"type":"bib"},"field":{"tag":"j"}},"expr":{"op":"equals","operands":["9v8xbqxk785qpxhh"]}}]}} 
+[2025-09-11T10:29:17.527192+00:00] app.INFO: Hittade bibs, hämtar exemplar. {"bibIds":["2567799"]} 
+[2025-09-11T10:29:17.601084+00:00] app.INFO: Hämtade exemplar framgångsrikt. {"item_count":31} 
