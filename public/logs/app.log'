@@ -29,3 +29,9 @@
 [2025-09-11T10:40:02.045933+00:00] app.DEBUG: Bygger JSON-query för bibs-sökning. {"query":{"queries":[{"target":{"record":{"type":"bib"},"field":{"type":"tag","value":"j"}},"expr":{"op":"equals","operands":["9v8xbqxk785qpxhh"]}}]}} 
 [2025-09-11T10:40:02.337482+00:00] app.INFO: Hittade bibs, hämtar exemplar. {"bibIds":["1000025","1000049","1000073","1000110","1000131","1000139","1000213","1000268","1000274","1000302"]} 
 [2025-09-11T10:40:02.452346+00:00] app.INFO: Hämtade exemplar framgångsrikt. {"item_count":10} 
+[2025-09-11T10:52:48.597992+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-09-11T10:52:48.601319+00:00] app.INFO: Hämtar ny API-token.  
+[2025-09-11T10:52:48.721298+00:00] app.INFO: Autentisering lyckades. {"expires_in":3600} 
+[2025-09-11T10:52:48.721397+00:00] app.DEBUG: Bygger JSON-query för bibs-sökning. {"query":{"queries":[{"target":{"record":{"type":"bib"},"field":{"type":"tag","value":"j"}},"expr":{"op":"equals","operands":["9v8xbqxk785qpxhh"]}}]}} 
+[2025-09-11T10:52:48.793091+00:00] app.INFO: Hittade bibs, hämtar exemplar. {"bibIds":["1000025","1000049","1000073","1000110","1000131","1000139","1000213","1000268","1000274","1000302"]} 
+[2025-09-11T10:52:48.892332+00:00] app.INFO: Hämtade exemplar framgångsrikt. {"item_count":10} 

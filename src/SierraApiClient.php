@@ -248,7 +248,8 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            if ($field !== null && is_string($identifierValue)) {
+            // Förenklad kontroll.
+            if ($field !== null) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     $field,
@@ -257,10 +258,10 @@ class SierraApiClient {
             }
         }
 
-        if (isset($identifiers['onr']) && is_string($identifiers['onr'])) {
+        if (isset($identifiers['onr'])) {
             $onrField = $fields['onr'] ?? null;
             $onrValue = $identifiers['onr'];
-            if ($onrField !== null) {
+            if ($onrField !== null && is_string($onrValue) && !empty($onrValue)) {
                 if (!empty($queryParts)) {
                     $queryParts[] = 'or';
                 }
