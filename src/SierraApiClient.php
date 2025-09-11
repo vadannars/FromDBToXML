@@ -8,7 +8,7 @@ use App\Config;
 use Monolog\Logger;
 
 /**
- * Klient för att interagera med Sierra API:et.
+ * Klient för att interager med Sierra API:et.
  *
  * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
  * och hämtning av exemplar (items) baserat på olika identifierare.
@@ -96,7 +96,6 @@ class SierraApiClient {
             throw new \RuntimeException("HTTP-förfrågan för autentisering misslyckades.", 0, $e);
         }
         
-        // PHPStan vet redan att $response är en array tack vare HttpClientInterface
         $decodedResponse = json_decode($response['response'], true);
         
         if ($response['status'] !== 200) {
@@ -221,7 +220,6 @@ class SierraApiClient {
             if (is_array($entry)) {
                 $sanitizedEntry = [];
                 foreach ($entry as $key => $value) {
-                    // Säkerställ att nyckeln är en sträng.
                     if (is_string($key)) {
                         $sanitizedEntry[$key] = $value;
                     }
@@ -250,7 +248,7 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            // Förenklad kontroll. PHPDoc garanterar att $field är en array<string, string> om den inte är null.
+            // Förenklad kontroll
             if ($field !== null && is_string($identifierValue)) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
@@ -260,11 +258,11 @@ class SierraApiClient {
             }
         }
 
-        if (array_key_exists('onr', $identifiers) && !empty($identifiers['onr'])) {
+        // Förenklad kontroll för 'onr'
+        if (isset($identifiers['onr']) && is_string($identifiers['onr'])) {
             $onrField = $fields['onr'] ?? null;
             $onrValue = $identifiers['onr'];
-            // Förenklad kontroll.
-            if ($onrField !== null && is_string($onrValue)) {
+            if ($onrField !== null) {
                 if (!empty($queryParts)) {
                     $queryParts[] = 'or';
                 }
@@ -293,7 +291,6 @@ class SierraApiClient {
      * @return array<string, mixed>
      */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
-        // Kontroll på $fieldKey är nu borta då PHPDoc garanterar typen.
         return [
             'target' => [
                 'record' => $record,
@@ -314,9 +311,8 @@ class SierraApiClient {
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            // Kontrollen är nu mer precis och eliminerar onödig `isset`.
             if (isset($fields[$key]) && is_array($fields[$key]) && !empty($identifiers[$key])) {
-                return (string) $key;
+                return $key;
             }
         }
         return null;
@@ -337,7 +333,6 @@ class SierraApiClient {
             if (!is_array($entry)) {
                 continue;
             }
-            // Förenklad kontroll
             $link = $entry['link'] ?? null;
             if (is_string($link)) {
                 $id = $this->extractBibIdFromLink($link);
