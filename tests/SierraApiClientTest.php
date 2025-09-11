@@ -190,8 +190,12 @@ class SierraApiClientTest extends TestCase
         $expected1 = [
             'queries' => [
                 [
-                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'i'] ],
-                    'expr' => [ 'op' => 'equals', 'operands' => ['978-1234567890'] ]
+                    'target' => [
+                        'record' => ['type' => 'bib'],
+                        // Ändrad här: från 'tag' till 'type' och 'value'
+                        'field' => ['type' => 'tag', 'value' => 'i'] 
+                    ],
+                    'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
                 ]
             ]
         ];
@@ -202,8 +206,12 @@ class SierraApiClientTest extends TestCase
         $expected2 = [
             'queries' => [
                 [
-                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'j'] ],
-                    'expr' => [ 'op' => 'equals', 'operands' => ['9v8xbqxk785qpxhh'] ]
+                    'target' => [
+                        'record' => ['type' => 'bib'],
+                        // Ändrad här
+                        'field' => ['type' => 'tag', 'value' => 'j'] 
+                    ],
+                    'expr' => ['op' => 'equals', 'operands' => ['9v8xbqxk785qpxhh']]
                 ]
             ]
         ];
@@ -214,13 +222,21 @@ class SierraApiClientTest extends TestCase
         $expected3 = [
             'queries' => [
                 [
-                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['tag' => 'i'] ],
-                    'expr' => [ 'op' => 'equals', 'operands' => ['978-1234567890'] ]
+                    'target' => [
+                        'record' => ['type' => 'bib'],
+                        // Ändrad här
+                        'field' => ['type' => 'tag', 'value' => 'i'] 
+                    ],
+                    'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
                 ],
                 'or',
                 [
-                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['marcTag' => '035'] ],
-                    'expr' => [ 'op' => 'equals', 'operands' => ['1234567'] ]
+                    'target' => [
+                        'record' => ['type' => 'bib'],
+                        // Ändrad här
+                        'field' => ['type' => 'marcTag', 'value' => '035'] 
+                    ],
+                    'expr' => ['op' => 'equals', 'operands' => ['1234567']]
                 ]
             ]
         ];
@@ -231,8 +247,12 @@ class SierraApiClientTest extends TestCase
         $expected4 = [
             'queries' => [
                 [
-                    'target' => [ 'record' => ['type' => 'bib'], 'field' => ['marcTag' => '035'] ],
-                    'expr' => [ 'op' => 'equals', 'operands' => ['1234567'] ]
+                    'target' => [
+                        'record' => ['type' => 'bib'],
+                        // Ändrad här
+                        'field' => ['type' => 'marcTag', 'value' => '035'] 
+                    ],
+                    'expr' => ['op' => 'equals', 'operands' => ['1234567']]
                 ]
             ]
         ];
