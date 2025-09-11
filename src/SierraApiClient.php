@@ -248,7 +248,6 @@ class SierraApiClient {
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            // Förenklad kontroll
             if ($field !== null && is_string($identifierValue)) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
@@ -258,7 +257,6 @@ class SierraApiClient {
             }
         }
 
-        // Förenklad kontroll för 'onr'
         if (isset($identifiers['onr']) && is_string($identifiers['onr'])) {
             $onrField = $fields['onr'] ?? null;
             $onrValue = $identifiers['onr'];
@@ -311,8 +309,8 @@ class SierraApiClient {
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            if (isset($fields[$key]) && is_array($fields[$key]) && !empty($identifiers[$key])) {
-                return $key;
+            if (isset($fields[$key]) && is_array($fields[$key]) && isset($identifiers[$key]) && !empty($identifiers[$key])) {
+                return (string) $key;
             }
         }
         return null;
