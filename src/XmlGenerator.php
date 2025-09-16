@@ -68,8 +68,7 @@ class XmlGenerator
             }
 
             // Hantera platsnamn defensivt
-            if (isset($item['location']) &&
-                is_array($item['location']) &&
+            if (isset($item['location']) && is_array($item['location']) &&
                 isset($item['location']['name']) &&
                 is_string($item['location']['name'])
             ) {

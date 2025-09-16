@@ -191,8 +191,7 @@ class Config
         if (is_array($fields)) {
             foreach ($fields as $key => $value) {
                 if (is_string($key)) {
-                    if (is_array($value) &&
-                        isset($value['type'], $value['value']) &&
+                    if (is_array($value) && isset($value['type'], $value['value']) &&
                         is_string($value['type']) &&
                         is_string($value['value'])
                     ) {
