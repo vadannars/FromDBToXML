@@ -23,11 +23,11 @@ class SierraApiClient
     private string $queryEndpoint;
     private string $itemsEndpoint;
     /**
-     * @var array<string, int> 
+     * @var array<string, int>
      */
     private array $queryParameters;
     /**
-     * @var array<string, array<string, string>|null> 
+     * @var array<string, array<string, string>|null>
      */
     private array $queryFields;
     private string $itemFields;
@@ -118,11 +118,11 @@ class SierraApiClient
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        if (!is_array($decodedResponse) 
-            || !isset($decodedResponse['access_token']) 
-            || !is_string($decodedResponse['access_token']) 
-            || !isset($decodedResponse['expires_in']) 
-            || !is_int($decodedResponse['expires_in'])
+        if (!is_array($decodedResponse) ||
+            !isset($decodedResponse['access_token']) ||
+            !is_string($decodedResponse['access_token']) ||
+            !isset($decodedResponse['expires_in']) ||
+            !is_int($decodedResponse['expires_in'])
         ) {
             $responseBodyContent = $response['response'];
             $this->logger->error(
@@ -202,8 +202,8 @@ class SierraApiClient
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
         /**
- * @var array<string, mixed> $bibData 
-*/
+        * @var array<string, mixed> $bibData
+        */
         $bibData = $decodedBibResponse;
 
         $bibIds = $this->extractBibIdsFromResponse($bibData);
@@ -253,8 +253,8 @@ class SierraApiClient
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
         /**
- * @var array<string, mixed> $itemsData 
-*/
+        * @var array<string, mixed> $itemsData
+        */
         $itemsData = $decodedItemsResponse;
 
         $entries = $itemsData['entries'] ?? null;
@@ -267,8 +267,8 @@ class SierraApiClient
         $this->logger->info('Hämtade exemplar framgångsrikt.', ['item_count' => count($entries)]);
 
         /**
- * @var array<array<string, mixed>> $sanitizedEntries 
-*/
+        * @var array<array<string, mixed>> $sanitizedEntries
+        */
         $sanitizedEntries = [];
         foreach ($entries as $entry) {
             if (is_array($entry)) {
@@ -294,8 +294,8 @@ class SierraApiClient
     private function buildCombinedQuery(array $identifiers): ?array
     {
         /**
- * @var array<mixed> $queryParts 
-*/
+        * @var array<mixed> $queryParts
+        */
         $queryParts = [];
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
@@ -335,8 +335,8 @@ class SierraApiClient
         }
 
         /**
- * @var array<string, mixed> $finalQuery 
-*/
+        * @var array<string, mixed> $finalQuery
+        */
         $finalQuery = ['queries' => $queryParts];
         return $finalQuery;
     }
@@ -389,8 +389,8 @@ class SierraApiClient
 
         $ids = [];
         /**
- * @var mixed $entry 
-*/
+        * @var mixed $entry
+        */
         foreach ($data['entries'] as $entry) {
             if (!is_array($entry)) {
                 continue;

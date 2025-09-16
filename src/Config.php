@@ -16,7 +16,7 @@ use App\LoggerFactory;
 class Config
 {
     /**
-     * @var array<string, mixed> 
+     * @var array<string, mixed>
      */
     private array $data;
 
@@ -162,7 +162,7 @@ class Config
     public function getQueryParameters(): array
     {
         /**
- * @var mixed $params 
+ * @var mixed $params
 */
         $params = $this->get('query_parameters', []);
 
@@ -183,18 +183,18 @@ class Config
     public function getQueryFields(): array
     {
         /**
- * @var mixed $fields 
-*/
+        * @var mixed $fields
+        */
         $fields = $this->get('query_fields', []);
 
         $sanitized = [];
         if (is_array($fields)) {
             foreach ($fields as $key => $value) {
                 if (is_string($key)) {
-                    if (is_array($value) 
-                        && isset($value['type'], $value['value']) 
-                        && is_string($value['type']) 
-                        && is_string($value['value'])
+                    if (is_array($value) &&
+                        isset($value['type'], $value['value']) &&
+                        is_string($value['type']) &&
+                        is_string($value['value'])
                     ) {
                         $sanitized[$key] = ['type' => $value['type'], 'value' => $value['value']];
                     } elseif ($value === null) {
