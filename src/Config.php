@@ -15,7 +15,9 @@ use App\LoggerFactory;
  */
 class Config
 {
-    /** @var array<string, mixed> */
+    /**
+     * @var array<string, mixed> 
+     */
     private array $data;
 
     /**
@@ -56,7 +58,7 @@ class Config
     /**
      * Parsar en sträng från .env-filen (t.ex. "tag:j") till en array.
      *
-     * @param string|null $fieldString Strängen som ska parsas.
+     * @param  string|null $fieldString Strängen som ska parsas.
      * @return array<string, string>|null En associativ array med 'type' och 'value', eller null om strängen är ogiltig.
      */
     private function parseFieldString(?string $fieldString): ?array
@@ -77,8 +79,10 @@ class Config
     /**
      * Hämtar ett konfigurationsvärde.
      *
-     * @param string $key Nyckeln för konfigurationsvärdet.
-     * @param mixed|null $default Standardvärde om nyckeln inte finns.
+     * @param  string     $key     Nyckeln
+     *                             för
+     *                             konfigurationsvärdet.
+     * @param  mixed|null $default Standardvärde om nyckeln inte finns.
      * @return mixed Det hämtade värdet.
      */
     public function get(string $key, mixed $default = null): mixed
@@ -157,7 +161,9 @@ class Config
      */
     public function getQueryParameters(): array
     {
-        /** @var mixed $params */
+        /**
+ * @var mixed $params 
+*/
         $params = $this->get('query_parameters', []);
 
         $sanitized = [];
@@ -176,17 +182,20 @@ class Config
      */
     public function getQueryFields(): array
     {
-        /** @var mixed $fields */
+        /**
+ * @var mixed $fields 
+*/
         $fields = $this->get('query_fields', []);
 
         $sanitized = [];
         if (is_array($fields)) {
             foreach ($fields as $key => $value) {
                 if (is_string($key)) {
-                    if (is_array($value) &&
-                        isset($value['type'], $value['value']) &&
-                        is_string($value['type']) &&
-                        is_string($value['value'])) {
+                    if (is_array($value) 
+                        && isset($value['type'], $value['value']) 
+                        && is_string($value['type']) 
+                        && is_string($value['value'])
+                    ) {
                         $sanitized[$key] = ['type' => $value['type'], 'value' => $value['value']];
                     } elseif ($value === null) {
                         $sanitized[$key] = null;

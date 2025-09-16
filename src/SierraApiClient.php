@@ -22,9 +22,13 @@ class SierraApiClient
     private string $tokenEndpoint;
     private string $queryEndpoint;
     private string $itemsEndpoint;
-    /** @var array<string, int> */
+    /**
+     * @var array<string, int> 
+     */
     private array $queryParameters;
-    /** @var array<string, array<string, string>|null> */
+    /**
+     * @var array<string, array<string, string>|null> 
+     */
     private array $queryFields;
     private string $itemFields;
 
@@ -36,9 +40,10 @@ class SierraApiClient
     /**
      * Skapar en ny instans av SierraApiClient.
      *
-     * @param Config $config En konfigurationsobjekt med API-uppgifter.
+     * @param Config              $config     En konfigurationsobjekt med API-uppgifter.
      * @param HttpClientInterface $httpClient En HTTP-klientimplementering (t.ex. GuzzleHttpClient).
-     * @param Logger $logger En loggerinstans för loggning.
+     * @param Logger              $logger     En loggerinstans
+     *                                        för loggning.
      */
     public function __construct(Config $config, HttpClientInterface $httpClient, Logger $logger)
     {
@@ -113,11 +118,12 @@ class SierraApiClient
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        if (!is_array($decodedResponse) ||
-            !isset($decodedResponse['access_token']) ||
-            !is_string($decodedResponse['access_token']) ||
-            !isset($decodedResponse['expires_in']) ||
-            !is_int($decodedResponse['expires_in'])) {
+        if (!is_array($decodedResponse) 
+            || !isset($decodedResponse['access_token']) 
+            || !is_string($decodedResponse['access_token']) 
+            || !isset($decodedResponse['expires_in']) 
+            || !is_int($decodedResponse['expires_in'])
+        ) {
             $responseBodyContent = $response['response'];
             $this->logger->error(
                 'Ogiltigt eller ofullständigt svar från autentiseringen.',
@@ -134,7 +140,7 @@ class SierraApiClient
     /**
      * Hämtar exemplar från Sierra API:et baserat på en eller flera identifierare.
      *
-     * @param array<string, string|null> $identifiers En associativ array av identifierare (t.ex. 'bib_id', 'isbn').
+     * @param  array<string, string|null> $identifiers En associativ array av identifierare (t.ex. 'bib_id', 'isbn').
      * @return array<array<string, mixed>>|null En array av exemplarinformation, eller null om inga hittades.
      * @throws \RuntimeException Om API-förfrågan misslyckas.
      */
@@ -150,10 +156,12 @@ class SierraApiClient
 
         $this->logger->debug('Bygger JSON-query för bibs-sökning.', ['query' => $bibQuery]);
 
-        $bibParams = http_build_query([
+        $bibParams = http_build_query(
+            [
             'limit' => $this->queryParameters['limit'],
             'offset' => $this->queryParameters['offset']
-        ]);
+            ]
+        );
 
         $bibUrl = $this->baseUrl . $this->queryEndpoint . '?' . $bibParams;
         $jsonQuery = json_encode($bibQuery, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -193,7 +201,9 @@ class SierraApiClient
             );
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
-        /** @var array<string, mixed> $bibData */
+        /**
+ * @var array<string, mixed> $bibData 
+*/
         $bibData = $decodedBibResponse;
 
         $bibIds = $this->extractBibIdsFromResponse($bibData);
@@ -205,10 +215,12 @@ class SierraApiClient
 
         $this->logger->info('Hittade bibs, hämtar exemplar.', ['bibIds' => $bibIds]);
 
-        $itemParams = http_build_query([
+        $itemParams = http_build_query(
+            [
             'fields' => $this->itemFields,
             'bibIds' => implode(',', $bibIds)
-        ]);
+            ]
+        );
 
         $itemsUrl = $this->baseUrl . $this->itemsEndpoint . '?' . $itemParams;
         try {
@@ -240,7 +252,9 @@ class SierraApiClient
             );
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
-        /** @var array<string, mixed> $itemsData */
+        /**
+ * @var array<string, mixed> $itemsData 
+*/
         $itemsData = $decodedItemsResponse;
 
         $entries = $itemsData['entries'] ?? null;
@@ -252,7 +266,9 @@ class SierraApiClient
 
         $this->logger->info('Hämtade exemplar framgångsrikt.', ['item_count' => count($entries)]);
 
-        /** @var array<array<string, mixed>> $sanitizedEntries */
+        /**
+ * @var array<array<string, mixed>> $sanitizedEntries 
+*/
         $sanitizedEntries = [];
         foreach ($entries as $entry) {
             if (is_array($entry)) {
@@ -272,12 +288,14 @@ class SierraApiClient
     /**
      * Bygger den kombinerade JSON-queryn för att söka efter bibliografiska poster.
      *
-     * @param array<string, string|null> $identifiers En array av identifierare.
+     * @param  array<string, string|null> $identifiers En array av identifierare.
      * @return array<string, mixed>|null Den färdiga JSON-query-arrayen, eller null om inga giltiga identifierare finns.
      */
     private function buildCombinedQuery(array $identifiers): ?array
     {
-        /** @var array<mixed> $queryParts */
+        /**
+ * @var array<mixed> $queryParts 
+*/
         $queryParts = [];
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
@@ -316,15 +334,17 @@ class SierraApiClient
             return null;
         }
 
-        /** @var array<string, mixed> $finalQuery */
+        /**
+ * @var array<string, mixed> $finalQuery 
+*/
         $finalQuery = ['queries' => $queryParts];
         return $finalQuery;
     }
 
     /**
-     * @param array<string, mixed> $record
-     * @param array<string, string> $fieldKey
-     * @param string $value
+     * @param  array<string, mixed>  $record
+     * @param  array<string, string> $fieldKey
+     * @param  string                $value
      * @return array<string, mixed>
      */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array
@@ -342,9 +362,9 @@ class SierraApiClient
     }
 
     /**
-     * @param array<string, array<string, string>|null> $fields
-     * @param array<string, string|null> $identifiers
-     * @param array<int, string> $preferredKeys
+     * @param  array<string, array<string, string>|null> $fields
+     * @param  array<string, string|null>                $identifiers
+     * @param  array<int, string>                        $preferredKeys
      * @return string|null
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string
@@ -358,7 +378,7 @@ class SierraApiClient
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed> $data
      * @return array<int, string>|null
      */
     private function extractBibIdsFromResponse(array $data): ?array
@@ -368,7 +388,9 @@ class SierraApiClient
         }
 
         $ids = [];
-        /** @var mixed $entry */
+        /**
+ * @var mixed $entry 
+*/
         foreach ($data['entries'] as $entry) {
             if (!is_array($entry)) {
                 continue;
@@ -388,7 +410,7 @@ class SierraApiClient
     /**
      * Extraherar biblioteks-ID från en länksträng.
      *
-     * @param string $link Länken som innehåller biblioteks-ID.
+     * @param  string $link Länken som innehåller biblioteks-ID.
      * @return string|null Det extraherade biblioteks-ID:t, eller null om det inte kunde extraheras.
      */
     private function extractBibIdFromLink(string $link): ?string

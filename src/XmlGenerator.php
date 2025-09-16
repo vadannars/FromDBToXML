@@ -13,7 +13,7 @@ class XmlGenerator
     /**
      * Mappar statuskoder från Sierra till läsbara svenska texter.
      *
-     * @param string $code Den korta statuskoden från API:et.
+     * @param  string $code Den korta statuskoden från API:et.
      * @return string Den läsbara statusbeskrivningen.
      */
     public static function mapStatus(string $code): string
@@ -35,7 +35,7 @@ class XmlGenerator
     /**
      * Genererar en XML-sträng från en array av exemplarinformation.
      *
-     * @param array<array<string, mixed>> $items En array med exemplarposter från API:et.
+     * @param  array<array<string, mixed>> $items En array med exemplarposter från API:et.
      * @return string Den genererade XML-strängen.
      */
     public static function generateXmlFromItems(array $items): string
@@ -69,9 +69,10 @@ class XmlGenerator
 
             // Hantera platsnamn defensivt
             if (isset($item['location'])
-                    && is_array($item['location'])
-                    && isset($item['location']['name'])
-                    && is_string($item['location']['name'])) {
+                && is_array($item['location'])
+                && isset($item['location']['name'])
+                && is_string($item['location']['name'])
+            ) {
                 $locationName = $item['location']['name'];
             }
 

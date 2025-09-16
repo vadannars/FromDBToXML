@@ -28,10 +28,13 @@ class GuzzleHttpClient implements HttpClientInterface
     /**
      * Utför ett HTTP-anrop med Guzzle.
      *
-     * @param string $url Den fullständiga URL:en.
-     * @param string $method HTTP-metoden (t.ex. 'GET', 'POST').
-     * @param array<string, string> $headers En array med HTTP-headers.
-     * @param mixed $body Innehållet i förfrågan (för POST, PUT, etc.).
+     * @param  string                $url     Den
+     *                                        fullständiga
+     *                                        URL:en.
+     * @param  string                $method  HTTP-metoden (t.ex. 'GET', 'POST').
+     * @param  array<string, string> $headers En array med HTTP-headers.
+     * @param  mixed                 $body    Innehållet i förfrågan (för POST,
+     *                                        PUT, etc.).
      * @return array<string, int|string> En associativ array som innehåller 'status', 'response' och 'error'.
      */
     public function request(string $url, string $method = 'GET', array $headers = [], $body = null): array
