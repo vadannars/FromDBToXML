@@ -60,6 +60,7 @@ class SierraApiClient {
      * @throws \RuntimeException Om autentiseringen misslyckas.
      */
     private function getToken(): string {
+        // Justering: Jämförelse med null ska göras med !==
         if ($this->token !== null && $this->expiresAt !== null && time() < ($this->expiresAt - 10)) {
             $this->logger->info('Använder cachad API-token.');
             return $this->token;
@@ -67,6 +68,7 @@ class SierraApiClient {
         $this->logger->info('Hämtar ny API-token.');
         $this->authenticate();
 
+        // Justering: Kontrollera att token inte är null efter autentisering
         if ($this->token === null) {
             $this->logger->error('Kunde inte hämta en giltig API-token.');
             throw new \RuntimeException("Kunde inte hämta en giltig API-token.");
@@ -162,6 +164,7 @@ class SierraApiClient {
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
         }
 
+        // Justering: Kontrollerar att svaret är en array innan vidare bearbetning
         if (!is_array($decodedBibResponse)) {
             $this->logger->error('Ogiltigt JSON-svar från bibs-sökningen.', ['response' => $bibResponse['response']]);
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
@@ -198,6 +201,7 @@ class SierraApiClient {
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
         
+        // Justering: Kontrollerar att svaret är en array innan vidare bearbetning
         if (!is_array($decodedItemsResponse)) {
             $this->logger->error('Ogiltigt JSON-svar från items-sökningen.', ['response' => $itemsResponse['response']]);
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
@@ -243,35 +247,36 @@ class SierraApiClient {
         $record = ['type' => 'bib'];
         $fields = $this->queryFields;
         
-        $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
+        // Justering: Hämta konfigurerade prioritetsfält
+        $priorityQueryFields = ['bib_id', 'isbn', 'issn']; // Dessa kan göras konfigurerbara om nödvändigt
+        $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, $priorityQueryFields);
         
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            // Vi har redan kontrollerat att identifierValue är en sträng i findFirstAvailableKey
-            if ($field !== null && $identifierValue !== null) {
+            // Säkerställer att $field och $identifierValue är av korrekt typ innan användning
+            if ($field !== null && is_array($field) && isset($field['type'], $field['value']) && $identifierValue !== null && is_string($identifierValue)) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
-                    $field,
+                    ['type' => $field['type'], 'value' => $field['value']], // Använder den konfigurerade fältdefinitionen
                     $identifierValue
                 );
             }
         }
 
-        // Här har vi kontrollerat att $identifiers['onr'] är en sträng och inte tom.
-        if (isset($identifiers['onr']) && is_string($identifiers['onr']) && $identifiers['onr'] !== '') {
-            $onrField = $fields['onr'] ?? null;
-            $onrValue = $identifiers['onr'];
-            if ($onrField !== null) {
-                if (!empty($queryParts)) {
-                    $queryParts[] = 'or';
-                }
-                $queryParts[] = $this->makeFieldQuery(
-                    $record,
-                    $onrField,
-                    $onrValue
-                );
+        // Justering: Kontrollerar om 'onr' finns och är en giltig sträng.
+        $onrFieldConfig = $fields['onr'] ?? null;
+        $onrIdentifierValue = $identifiers['onr'] ?? null;
+        if ($onrIdentifierValue !== null && is_string($onrIdentifierValue) && $onrIdentifierValue !== '' && $onrFieldConfig !== null && is_array($onrFieldConfig) && isset($onrFieldConfig['type'], $onrFieldConfig['value'])) {
+            if (!empty($queryParts)) {
+                // Lägger till 'or' endast om det redan finns en befintlig query-del
+                $queryParts[] = 'or';
             }
+            $queryParts[] = $this->makeFieldQuery(
+                $record,
+                ['type' => $onrFieldConfig['type'], 'value' => $onrFieldConfig['value']], // Använder den konfigurerade fältdefinitionen
+                $onrIdentifierValue
+            );
         }
 
         if (empty($queryParts)) {
@@ -286,15 +291,15 @@ class SierraApiClient {
 
     /**
      * @param array<string, mixed> $record
-     * @param array<string, string> $fieldKey
+     * @param array<string, string> $field
      * @param string $value
      * @return array<string, mixed>
      */
-    private function makeFieldQuery(array $record, array $fieldKey, string $value): array {
+    private function makeFieldQuery(array $record, array $field, string $value): array {
         return [
             'target' => [
                 'record' => $record,
-                'field' => $fieldKey
+                'field' => $field // Använder den strukturerade fältdefinitionen här
             ],
             'expr' => [
                 'op' => 'equals',
@@ -311,7 +316,7 @@ class SierraApiClient {
      */
     private function findFirstAvailableKey(array $fields, array $identifiers, array $preferredKeys): ?string {
         foreach ($preferredKeys as $key) {
-            // Kontrollerar att både fältet finns och att identifieraren är en icke-tom sträng
+            // Justering: Kontrollerar att fältet är konfigurerat och att identifieraren finns och är en icke-tom sträng
             if (isset($fields[$key]) && is_array($fields[$key]) && isset($identifiers[$key]) && is_string($identifiers[$key]) && $identifiers[$key] !== '') {
                 return (string) $key;
             }
@@ -343,11 +348,17 @@ class SierraApiClient {
             }
         }
         
-        return $ids ?: null;
+        // Returnerar null om arrayen är tom, annars arrayen med ID:n.
+        return !empty($ids) ? $ids : null;
     }
 
     private function extractBibIdFromLink(string $link): ?string {
-        $id = basename($link);
-        return $id !== '' ? $id : null;
+        // Använder parse_url för att mer robust extrahera bas-URL:en och sedan basename
+        $path = parse_url($link, PHP_URL_PATH);
+        if ($path === null) {
+            return null;
+        }
+        $id = basename($path);
+        return ($id !== '' && $id !== false) ? $id : null;
     }
 }
