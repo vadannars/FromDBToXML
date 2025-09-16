@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App;
@@ -47,10 +48,10 @@ class GuzzleHttpClient implements HttpClientInterface
             // }
             $options['body'] = $body;
         }
-        
+
         try {
             $response = $this->guzzleClient->request($method, $url, $options);
-            
+
             return [
                 'status' => $response->getStatusCode(),
                 'response' => $response->getBody()->getContents(),
@@ -66,12 +67,12 @@ class GuzzleHttpClient implements HttpClientInterface
             //     ];
             $statusCode = $response ? $response->getStatusCode() : 0;
             $responseBody = $response ? $response->getBody()->getContents() : '';
-                        return [
+            return [
                 'status' => $statusCode,
                 'response' => $responseBody,
                 'error' => $e->getMessage()
             ];
         }
-            
+
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App;
@@ -12,7 +13,8 @@ use App\LoggerFactory;
  * Denna klass ger en strukturerad åtkomst till konfigurationsvärden och ser till att
  * de har rätt datatyp.
  */
-class Config {
+class Config
+{
     /** @var array<string, mixed> */
     private array $data;
 
@@ -21,10 +23,11 @@ class Config {
      *
      * @param string $envPath Sökvägen till mappen där .env-filen finns.
      */
-    public function __construct(string $envPath) {
+    public function __construct(string $envPath)
+    {
         $dotenv = Dotenv::createImmutable($envPath);
         $env = $dotenv->safeLoad();
-        
+
         $this->data = [
             'api_key' => (string) ($env['API_KEY'] ?? ''),
             'api_secret' => (string) ($env['API_SECRET'] ?? ''),
@@ -49,14 +52,15 @@ class Config {
             'log_destination' => (string) ($env['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log')
         ];
     }
-    
+
     /**
      * Parsar en sträng från .env-filen (t.ex. "tag:j") till en array.
      *
      * @param string|null $fieldString Strängen som ska parsas.
      * @return array<string, string>|null En associativ array med 'type' och 'value', eller null om strängen är ogiltig.
      */
-    private function parseFieldString(?string $fieldString): ?array {
+    private function parseFieldString(?string $fieldString): ?array
+    {
         if (empty($fieldString)) {
             return null;
         }
@@ -77,72 +81,85 @@ class Config {
      * @param mixed|null $default Standardvärde om nyckeln inte finns.
      * @return mixed Det hämtade värdet.
      */
-    public function get(string $key, mixed $default = null): mixed {
+    public function get(string $key, mixed $default = null): mixed
+    {
         return $this->data[$key] ?? $default;
     }
 
-    public function getAllowedOrigins(): string {
+    public function getAllowedOrigins(): string
+    {
         $value = $this->get('allowed_origins', '');
         return is_string($value) ? $value : '';
     }
-    
-    public function getApiBaseUrl(): string {
+
+    public function getApiBaseUrl(): string
+    {
         $value = $this->get('api_base_url');
         return is_string($value) ? rtrim($value, '/') : '';
     }
 
-    public function getApiKey(): string {
+    public function getApiKey(): string
+    {
         $value = $this->get('api_key');
         return is_string($value) ? $value : '';
     }
 
-    public function getApiSecret(): string {
+    public function getApiSecret(): string
+    {
         $value = $this->get('api_secret');
         return is_string($value) ? $value : '';
     }
 
-    public function getTokenEndpoint(): string {
+    public function getTokenEndpoint(): string
+    {
         $value = $this->get('token_endpoint');
         return is_string($value) ? $value : '';
     }
 
-    public function getQueryEndpoint(): string {
+    public function getQueryEndpoint(): string
+    {
         $value = $this->get('query_endpoint');
         return is_string($value) ? $value : '';
     }
 
-    public function getItemsEndpoint(): string {
+    public function getItemsEndpoint(): string
+    {
         $value = $this->get('items_endpoint');
         return is_string($value) ? $value : '';
     }
 
-    public function getItemFields(): string {
+    public function getItemFields(): string
+    {
         $value = $this->get('item_fields');
         return is_string($value) ? $value : '';
     }
 
-    public function getLogLevel(): string {
+    public function getLogLevel(): string
+    {
         $value = $this->get('log_level', 'debug');
         return is_string($value) ? strtolower($value) : 'debug';
     }
 
-    public function getLogDestination(): string {
+    public function getLogDestination(): string
+    {
         $value = $this->get('log_destination');
         return is_string($value) ? $value : __DIR__ . '/../logs/app.log';
     }
 
-    public function getActive(): bool {
+    public function getActive(): bool
+    {
         $value = $this->get('active');
         return is_bool($value) ? $value : false;
     }
-    
+
     /**
      * @return array<string, int>
      */
-    public function getQueryParameters(): array {
+    public function getQueryParameters(): array
+    {
         /** @var mixed $params */
         $params = $this->get('query_parameters', []);
-        
+
         $sanitized = [];
         if (is_array($params)) {
             foreach ($params as $key => $value) {
@@ -153,14 +170,15 @@ class Config {
         }
         return $sanitized;
     }
-    
+
     /**
      * @return array<string, array<string, string>|null>
      */
-    public function getQueryFields(): array {
+    public function getQueryFields(): array
+    {
         /** @var mixed $fields */
         $fields = $this->get('query_fields', []);
-        
+
         $sanitized = [];
         if (is_array($fields)) {
             foreach ($fields as $key => $value) {

@@ -1,4 +1,5 @@
 <?php
+
 namespace App;
 
 use Monolog\Level;
@@ -27,7 +28,7 @@ class LoggerFactory
         $level = $levelMap[$configLevel] ?? Level::Debug;
 
         $handler = new StreamHandler($logDestination, $level);
-        
+
         $handler->setFormatter(new LineFormatter(null, null, true, true));
         $logger = new Logger($name);
         $logger->pushHandler($handler);

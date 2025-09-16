@@ -1,4 +1,5 @@
 <?php
+
 namespace App;
 
 /**
@@ -7,14 +8,16 @@ namespace App;
  * Denna klass är ansvarig för att transformera rå data till det
  * specifika XML-format som krävs.
  */
-class XmlGenerator {
+class XmlGenerator
+{
     /**
      * Mappar statuskoder från Sierra till läsbara svenska texter.
      *
      * @param string $code Den korta statuskoden från API:et.
      * @return string Den läsbara statusbeskrivningen.
      */
-    public static function mapStatus(string $code): string {
+    public static function mapStatus(string $code): string
+    {
         $map = [
             '-' => 'Tillgänglig',
             '!' => 'Reserverad',
@@ -34,8 +37,9 @@ class XmlGenerator {
      *
      * @param array<array<string, mixed>> $items En array med exemplarposter från API:et.
      * @return string Den genererade XML-strängen.
-     */ 
-    public static function generateXmlFromItems(array $items): string {
+     */
+    public static function generateXmlFromItems(array $items): string
+    {
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
 
         $channel = $xml->addChild('channel');
@@ -46,7 +50,7 @@ class XmlGenerator {
 
         foreach ($items as $item) {
             $xmlItem = $itemInfo->addChild('Item');
-            
+
             $statusCode = 'UNKNOWN';
             $duedate = '';
             $locationName = '';
@@ -62,12 +66,12 @@ class XmlGenerator {
                     $duedate = $statusData['duedate'];
                 }
             }
-            
+
             // Hantera platsnamn defensivt
             if (isset($item['location']) && is_array($item['location']) && isset($item['location']['name']) && is_string($item['location']['name'])) {
                 $locationName = $item['location']['name'];
             }
-            
+
             // Hantera anropsnummer defensivt
             if (isset($item['callNumber']) && is_string($item['callNumber'])) {
                 $callNumber = $item['callNumber'];
