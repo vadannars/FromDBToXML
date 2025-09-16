@@ -118,10 +118,10 @@ class SierraApiClient
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) ||
-            !is_string($decodedResponse['access_token']) ||
-            !isset($decodedResponse['expires_in']) ||
-            !is_int($decodedResponse['expires_in'])
+        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) 
+            || !is_string($decodedResponse['access_token']) 
+            || !isset($decodedResponse['expires_in']) 
+            || !is_int($decodedResponse['expires_in'])
         ) {
             $responseBodyContent = $response['response'];
             $this->logger->error(
