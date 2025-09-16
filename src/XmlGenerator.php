@@ -71,8 +71,7 @@ class XmlGenerator
             if (isset($item['location'])
                     && is_array($item['location'])
                     && isset($item['location']['name'])
-                    && is_string($item['location']['name']))
-            {
+                    && is_string($item['location']['name'])) {
                 $locationName = $item['location']['name'];
             }
 
