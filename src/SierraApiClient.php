@@ -215,12 +215,14 @@ class SierraApiClient
         if ($itemsResponse['status'] !== 200) {
             $errorMessage = $itemsResponse['error'] ?: 'Okänd felorsak vid items-hämtning';
             $this->logger->error('Items-hämtning misslyckades.',
-                                ['status' => $itemsResponse['status'], 'error' => $errorMessage]);
+                                ['status' => $itemsResponse['status'],
+                                'error' => $errorMessage]);
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
 
         if (!is_array($decodedItemsResponse)) {
-            $this->logger->error('Ogiltigt JSON-svar från items-sökningen.', ['response' => $itemsResponse['response']]);
+            $this->logger->error('Ogiltigt JSON-svar från items-sökningen.',
+                                ['response' => $itemsResponse['response']]);
             throw new \RuntimeException("Ogiltigt JSON-svar från items-sökningen.");
         }
         /** @var array<string, mixed> $itemsData */
