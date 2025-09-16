@@ -73,6 +73,5 @@ class GuzzleHttpClient implements HttpClientInterface
                 'error' => $e->getMessage()
             ];
         }
-
     }
 }

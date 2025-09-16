@@ -105,13 +105,21 @@ class SierraApiClient
 
         if ($response['status'] !== 200) {
             $errorMessage = $response['error'] ?: 'Okänd felorsak vid autentisering';
-            $this->logger->error('Autentisering misslyckades.', ['status' => $response['status'], 'error' => $errorMessage]);
+            $this->logger->error('Autentisering misslyckades.',
+                                ['status' => $response['status'],
+                                'error' => $errorMessage]);
             throw new \RuntimeException("Autentisering misslyckades: HTTP {$response['status']} - {$errorMessage}");
         }
 
-        if (!is_array($decodedResponse) || !isset($decodedResponse['access_token']) || !is_string($decodedResponse['access_token']) || !isset($decodedResponse['expires_in']) || !is_int($decodedResponse['expires_in'])) {
+        if (!is_array($decodedResponse) ||
+            !isset($decodedResponse['access_token']) ||
+            !is_string($decodedResponse['access_token']) ||
+            !isset($decodedResponse['expires_in']) ||
+            !is_int($decodedResponse['expires_in']))
+        {
             $responseBodyContent = $response['response'];
-            $this->logger->error('Ogiltigt eller ofullständigt svar från autentiseringen.', ['response' => $responseBodyContent]);
+            $this->logger->error('Ogiltigt eller ofullständigt svar från autentiseringen.',
+                                ['response' => $responseBodyContent]);
             throw new \RuntimeException("Ogiltigt eller ofullständigt svar från autentiseringen.");
         }
 
@@ -156,7 +164,8 @@ class SierraApiClient
         try {
             $bibResponse = $this->httpClient->request($bibUrl, 'POST', $headers, $jsonQuery);
         } catch (\Exception $e) {
-            $this->logger->error('HTTP-förfrågan för bibs-sökning misslyckades.', ['error' => $e->getMessage()]);
+            $this->logger->error('HTTP-förfrågan för bibs-sökning misslyckades.',
+                                ['error' => $e->getMessage()]);
             throw new \RuntimeException("HTTP-förfrågan för bibs-sökning misslyckades.", 0, $e);
         }
 
@@ -164,12 +173,15 @@ class SierraApiClient
 
         if ($bibResponse['status'] !== 200) {
             $errorMessage = $bibResponse['error'] ?: 'Okänd felorsak vid bibs-sökning';
-            $this->logger->error('Bibs-sökning misslyckades.', ['status' => $bibResponse['status'], 'error' => $errorMessage]);
+            $this->logger->error('Bibs-sökning misslyckades.',
+                                ['status' => $bibResponse['status'],
+                                'error' => $errorMessage]);
             throw new \RuntimeException("Sökning misslyckades: HTTP {$bibResponse['status']} - {$errorMessage}");
         }
 
         if (!is_array($decodedBibResponse)) {
-            $this->logger->error('Ogiltigt JSON-svar från bibs-sökningen.', ['response' => $bibResponse['response']]);
+            $this->logger->error('Ogiltigt JSON-svar från bibs-sökningen.',
+                                ['response' => $bibResponse['response']]);
             throw new \RuntimeException("Ogiltigt JSON-svar från bibs-sökningen.");
         }
         /** @var array<string, mixed> $bibData */
@@ -193,7 +205,8 @@ class SierraApiClient
         try {
             $itemsResponse = $this->httpClient->request($itemsUrl, 'GET', $headers);
         } catch (\Exception $e) {
-            $this->logger->error('HTTP-förfrågan för items-hämtning misslyckades.', ['error' => $e->getMessage()]);
+            $this->logger->error('HTTP-förfrågan för items-hämtning misslyckades.',
+                                ['error' => $e->getMessage()]);
             throw new \RuntimeException("HTTP-förfrågan för items-hämtning misslyckades.", 0, $e);
         }
 
@@ -201,7 +214,8 @@ class SierraApiClient
 
         if ($itemsResponse['status'] !== 200) {
             $errorMessage = $itemsResponse['error'] ?: 'Okänd felorsak vid items-hämtning';
-            $this->logger->error('Items-hämtning misslyckades.', ['status' => $itemsResponse['status'], 'error' => $errorMessage]);
+            $this->logger->error('Items-hämtning misslyckades.',
+                                ['status' => $itemsResponse['status'], 'error' => $errorMessage]);
             throw new \RuntimeException("Kunde inte hämta exemplar: HTTP {$itemsResponse['status']} - {$errorMessage}");
         }
 
