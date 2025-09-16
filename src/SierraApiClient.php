@@ -264,7 +264,6 @@ class SierraApiClient
             }
         }
 
-        // Här har vi kontrollerat att $identifiers['onr'] är en sträng och inte tom.
         if (isset($identifiers['onr']) && $identifiers['onr'] !== '') {
             $onrField = $fields['onr'] ?? null;
             $onrValue = $identifiers['onr'];
@@ -354,10 +353,18 @@ class SierraApiClient
         return $ids ?: null;
     }
 
+    /**
+     * Extraherar biblioteks-ID från en länksträng.
+     *
+     * @param string $link Länken som innehåller biblioteks-ID.
+     * @return string|null Det extraherade biblioteks-ID:t, eller null om det inte kunde extraheras.
+     */
     private function extractBibIdFromLink(string $link): ?string
     {
+        // basename() returnerar en sträng om $link är en sträng.
+        // Vi kollar om resultatet är en tom sträng.
         $id = basename($link);
-        if ($id === false || $id === '') {
+        if ($id === '') {
             return null;
         }
         return $id;
