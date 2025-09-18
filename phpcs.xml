@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<ruleset name="MyProject">
+    <description>My custom coding standard based on PSR-12.</description>
+    <rule ref="PSR12"/>
+
+    <arg name="extensions" value="php"/>
+    <file>src</file>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+</ruleset>
