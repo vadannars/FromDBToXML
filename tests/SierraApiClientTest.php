@@ -192,8 +192,8 @@ class SierraApiClientTest extends TestCase
                 [
                     'target' => [
                         'record' => ['type' => 'bib'],
-                        // Ändrad här: från 'tag' till 'type' och 'value'
-                        'field' => ['type' => 'tag', 'value' => 'i'] 
+                        // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
+                        'field' => ['tag' => 'i'] 
                     ],
                     'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
                 ]
@@ -208,8 +208,8 @@ class SierraApiClientTest extends TestCase
                 [
                     'target' => [
                         'record' => ['type' => 'bib'],
-                        // Ändrad här
-                        'field' => ['type' => 'tag', 'value' => 'j'] 
+                        // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
+                        'field' => ['tag' => 'j'] 
                     ],
                     'expr' => ['op' => 'equals', 'operands' => ['9v8xbqxk785qpxhh']]
                 ]
@@ -224,8 +224,8 @@ class SierraApiClientTest extends TestCase
                 [
                     'target' => [
                         'record' => ['type' => 'bib'],
-                        // Ändrad här
-                        'field' => ['type' => 'tag', 'value' => 'i'] 
+                        // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
+                        'field' => ['tag' => 'i'] 
                     ],
                     'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
                 ],
@@ -233,8 +233,8 @@ class SierraApiClientTest extends TestCase
                 [
                     'target' => [
                         'record' => ['type' => 'bib'],
-                        // Ändrad här
-                        'field' => ['type' => 'marcTag', 'value' => '035'] 
+                        // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
+                        'field' => ['marcTag' => '035'] 
                     ],
                     'expr' => ['op' => 'equals', 'operands' => ['1234567']]
                 ]
@@ -249,8 +249,8 @@ class SierraApiClientTest extends TestCase
                 [
                     'target' => [
                         'record' => ['type' => 'bib'],
-                        // Ändrad här
-                        'field' => ['type' => 'marcTag', 'value' => '035'] 
+                        // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
+                        'field' => ['marcTag' => '035'] 
                     ],
                     'expr' => ['op' => 'equals', 'operands' => ['1234567']]
                 ]
