@@ -350,10 +350,14 @@ class SierraApiClient
      */
     private function makeFieldQuery(array $record, array $fieldKey, string $value): array
     {
+        $formattedField = [
+            $fieldKey['type'] => $fieldKey['value']
+        ];
+
         return [
             'target' => [
                 'record' => $record,
-                'field' => $fieldKey
+                'field' => $formattedField
             ],
             'expr' => [
                 'op' => 'equals',
