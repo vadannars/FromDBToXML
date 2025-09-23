@@ -30,7 +30,7 @@ class LoggerFactory
 
         $handler = new StreamHandler($logDestination, $level);
         $handler->setFormatter(new LineFormatter(null, null, true, true));
-        
+
         $logger = new Logger($name);
         $logger->pushHandler($handler);
 
