@@ -6,7 +6,7 @@ namespace App;
 
 use App\HttpClientInterface;
 use App\Config;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * Klient för att interager med Sierra API:et.
@@ -35,17 +35,17 @@ class SierraApiClient
     private ?string $token = null;
     private ?int $expiresAt = null;
     private HttpClientInterface $httpClient;
-    private Logger $logger;
+    private LoggerInterface $logger;
 
     /**
      * Skapar en ny instans av SierraApiClient.
      *
      * @param Config              $config     En konfigurationsobjekt med API-uppgifter.
      * @param HttpClientInterface $httpClient En HTTP-klientimplementering (t.ex. GuzzleHttpClient).
-     * @param Logger              $logger     En loggerinstans
+     * @param LoggerInterface     $logger     En loggerinterface
      *                                        för loggning.
      */
-    public function __construct(Config $config, HttpClientInterface $httpClient, Logger $logger)
+    public function __construct(Config $config, HttpClientInterface $httpClient, LoggerInterface $logger)
     {
         $this->baseUrl = rtrim($config->getApiBaseUrl(), '/');
         $this->apiKey = $config->getApiKey();

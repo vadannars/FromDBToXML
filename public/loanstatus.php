@@ -106,7 +106,8 @@ try {
         throw new \RuntimeException("Inga exemplar hittades för mediet.");
     }
 
-    $xml = XmlGenerator::generateXmlFromItems($allItems);
+    $xmlGenerator = new XmlGenerator($logger);
+    $xml = $xmlGenerator->generateXmlFromItems($allItems);
 
     header('Content-Type: application/xml; charset=utf-8');
     echo $xml;

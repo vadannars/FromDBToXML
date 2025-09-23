@@ -44,11 +44,6 @@ class GuzzleHttpClient implements HttpClientInterface
         ];
 
         if ($body !== null) {
-            // if (isset($headers['Content-Type']) && $headers['Content-Type'] === 'application/json') {
-            //     $options['json'] = json_decode($body);
-            // } else {
-            //     $options['body'] = $body;
-            // }
             $options['body'] = $body;
         }
 
@@ -62,12 +57,6 @@ class GuzzleHttpClient implements HttpClientInterface
             ];
         } catch (RequestException $e) {
             $response = $e->getResponse();
-            // if ($response) {
-            //     return [
-            //         'status' => $response->getStatusCode(),
-            //         'response' => $response->getBody()->getContents(),
-            //         'error' => $e->getMessage()
-            //     ];
             $statusCode = $response ? $response->getStatusCode() : 0;
             $responseBody = $response ? $response->getBody()->getContents() : '';
             return [

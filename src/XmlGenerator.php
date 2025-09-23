@@ -2,6 +2,11 @@
 
 namespace App;
 
+use Psr\Log\LoggerInterface;
+use SimpleXMLElement;
+use Exception;
+use DateTime;
+
 /**
  * Genererar XML-utdata baserat på data från Sierra API:et.
  *
@@ -10,6 +15,12 @@ namespace App;
  */
 class XmlGenerator
 {
+    private LoggerInterface $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
     /**
      * Mappar statuskoder från Sierra till läsbara svenska texter.
      *
@@ -38,7 +49,7 @@ class XmlGenerator
      * @param  array<array<string, mixed>> $items En array med exemplarposter från API:et.
      * @return string Den genererade XML-strängen.
      */
-    public static function generateXmlFromItems(array $items): string
+    public function generateXmlFromItems(array $items): string
     {
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
 
@@ -56,7 +67,6 @@ class XmlGenerator
             $locationName = '';
             $callNumber = '';
 
-            // Hantera statuskod och utlåningsdatum defensivt
             if (isset($item['status']) && is_array($item['status'])) {
                 $statusData = $item['status'];
                 if (isset($statusData['code']) && is_string($statusData['code'])) {
@@ -67,7 +77,6 @@ class XmlGenerator
                 }
             }
 
-            // Hantera platsnamn defensivt
             if (
                 isset($item['location']) &&
                 is_array($item['location']) &&
@@ -77,7 +86,6 @@ class XmlGenerator
                 $locationName = $item['location']['name'];
             }
 
-            // Hantera anropsnummer defensivt
             if (isset($item['callNumber']) && is_string($item['callNumber'])) {
                 $callNumber = $item['callNumber'];
             }
@@ -90,12 +98,25 @@ class XmlGenerator
                 $statusText = self::mapStatus($statusCode);
             }
 
+            if ($duedate !== '') {
+                try {
+                    $dateObj = new DateTime($duedate);
+                    $duedate = $dateObj->format('Y-m-d');
+                } catch (Exception $e) {
+                    $this->logger->warning('Ogiltigt datumformat från API, kunde inte formatera.', [
+                        'original_date' => $duedate,
+                        'exception_message' => $e->getMessage(),
+                    ]);
+                    $duedate = '';
+                }
+            }
+
             $fields = [
                 'Item_No' => $counter++,
                 'Location' => $locationName,
                 'Call_No' => $callNumber,
                 'Status' => $statusText,
-                'Status_date' => $duedate,
+                'Status_Date' => $duedate,
                 'Status_Date_Description' => ($statusCode === '-' && $duedate !== '') ? 'ÅTER ' : '',
                 'Loan_Policy' => '', // Placeholder
                 'UniqueItemId' => '' // Placeholder
@@ -108,6 +129,7 @@ class XmlGenerator
         }
         $xmlResult = $xml->asXML();
         if ($xmlResult === false) {
+            $this->logger->error('Misslyckades med att generera XML');
             throw new \RuntimeException("Ingen xml-data genererades.");
         }
         return $xmlResult;
