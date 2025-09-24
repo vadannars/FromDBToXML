@@ -53,3 +53,9 @@
 [2025-09-23T10:27:35.432806+00:00] app.DEBUG: Bygger JSON-query för bibs-sökning. {"query":{"queries":[{"target":{"record":{"type":"bib"},"field":{"tag":"j"}},"expr":{"op":"equals","operands":["9v8xbqxk785qpxhh"]}}]}} 
 [2025-09-23T10:27:37.489318+00:00] app.INFO: Hittade bibs, hämtar exemplar. {"bibIds":["2567799"]} 
 [2025-09-23T10:27:37.562560+00:00] app.INFO: Hämtade exemplar framgångsrikt. {"item_count":31} 
+[2025-09-24T11:25:35.232601+00:00] app.INFO: API-anrop mottaget {"params":{"bib_id":"9v8xbqxk785qpxhh","isbn":"9789177754657","issn":null,"onr":null}} 
+[2025-09-24T11:25:35.233168+00:00] app.INFO: Hämtar ny API-token.  
+[2025-09-24T11:25:35.346571+00:00] app.INFO: Autentisering lyckades. {"expires_in":3600} 
+[2025-09-24T11:25:35.346678+00:00] app.DEBUG: Bygger JSON-query för bibs-sökning. {"query":{"queries":[{"target":{"record":{"type":"bib"},"field":{"tag":"j"}},"expr":{"op":"equals","operands":["9v8xbqxk785qpxhh"]}}]}} 
+[2025-09-24T11:25:37.492491+00:00] app.INFO: Hittade bibs, hämtar exemplar. {"bibIds":["2567799"]} 
+[2025-09-24T11:25:37.600178+00:00] app.INFO: Hämtade exemplar framgångsrikt. {"item_count":31} 

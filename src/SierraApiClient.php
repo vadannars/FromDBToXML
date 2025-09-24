@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface;
  * Hanterar autentisering, sökningar efter bibliografiska poster (bibs)
  * och hämtning av exemplar (items) baserat på olika identifierare.
  */
-class SierraApiClient
+class SierraApiClient implements SierraApiClientInterface
 {
     private string $baseUrl;
     private string $apiKey;

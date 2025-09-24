@@ -13,7 +13,7 @@ use App\LoggerFactory;
  * Denna klass ger en strukturerad åtkomst till konfigurationsvärden och ser till att
  * de har rätt datatyp.
  */
-class Config
+class Config implements ConfigInterface
 {
     /**
      * @var array<string, mixed>

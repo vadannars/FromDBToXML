@@ -50,10 +50,18 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Config;
+use App\ConfigInterface;
 use App\SierraApiClient;
+use App\SierraApiClientInterface;
 use App\GuzzleHttpClient;
 use App\XmlGenerator;
 use App\LoggerFactory;
+use App\LoanStatusController;
+use Psr\Log\LoggerInterface;
+
+/** @var ConfigInterface $config */
+/** @var LoggerInterface $logger */
+$logger = null;
 
 try {
     $config = new Config(__DIR__ . '/..');
@@ -91,23 +99,14 @@ try {
         'onr'    => $normalizedGet['onr'] ?? null
     ];
 
-    if (empty(array_filter($identifiers))) {
-        throw new \InvalidArgumentException("Ingen parameter angiven i anropet.");
-    }
-
-    $logger->info('API-anrop mottaget', ['params' => $identifiers]);
-
     $httpClient = new GuzzleHttpClient();
     $apiClient = new SierraApiClient($config, $httpClient, $logger);
 
-    $allItems = $apiClient->getItemsForIdentifiers($identifiers);
-
-    if (empty($allItems)) {
-        throw new \RuntimeException("Inga exemplar hittades för mediet.");
-    }
-
     $xmlGenerator = new XmlGenerator($logger);
-    $xml = $xmlGenerator->generateXmlFromItems($allItems);
+
+    $controller = new LoanStatusController($apiClient, $xmlGenerator, $logger);
+
+    $xml = $controller->handleRequest($identifiers);
 
     header('Content-Type: application/xml; charset=utf-8');
     echo $xml;

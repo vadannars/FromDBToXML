@@ -23,6 +23,7 @@
 │   ├── app-2025-08-14.log
 │   ├── app-2025-08-18.log
 │   └── app.log'
+├── phpcs.xml
 ├── phpunit.xml
 ├── projectinfo.txt
 ├── public
@@ -45,7 +46,11 @@
 └── vendor
     ├── autoload.php
     ├── bin
+    ├── clue
     ├── composer
+    ├── evenement
+    ├── fidry
+    ├── friendsofphp
     ├── graham-campbell
     ├── guzzlehttp
     ├── monolog
@@ -57,6 +62,7 @@
     ├── phpunit
     ├── psr
     ├── ralouphie
+    ├── react
     ├── sebastian
     ├── squizlabs
     ├── staabm
@@ -64,4 +70,4 @@
     ├── theseer
     └── vlucas
 
-27 directories, 37 files
+32 directories, 38 files
