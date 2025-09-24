@@ -10,6 +10,13 @@ use Psr\Log\LoggerInterface;
 
 class LoggerFactory
 {
+    /**
+     * Skapar och konfigurerar en logger.
+     *
+     * @param Config $config Konfigurationsobjektet för att hämta loggnivå och destination.
+     * @param string $name Namn för loggaren.
+     * @return LoggerInterface Den konfigurerade loggerinstansen.
+     */
     public static function createLogger(Config $config, string $name = 'app'): LoggerInterface
     {
         $logDestination = $config->getLogDestination();
@@ -28,7 +35,16 @@ class LoggerFactory
         $configLevel = $config->getLogLevel();
         $level = $levelMap[$configLevel] ?? Level::Debug;
 
-        $handler = new StreamHandler($logDestination, $level);
+        try {
+            $handler = new StreamHandler($logDestination, $level);
+        } catch (\Exception $e) {
+            error_log(
+                "Kunde inte skriva till loggfil: " . $e->getMessage() .
+                " - loggar till stderr istället."
+            );
+            $handler = new StreamHandler('php://stderr', $level);
+        }
+
         $handler->setFormatter(new LineFormatter(null, null, true, true));
 
         $logger = new Logger($name);

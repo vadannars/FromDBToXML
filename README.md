@@ -1,103 +1,89 @@
-# Try Out Development Containers: PHP
+Loan Status API Client
+Detta är en PHP-applikation som fungerar som en mellanhand mellan Libris och ett biblioteks-API (Sierra API) för att hämta status på böcker. Applikationen tar emot identifierare (som ISBN eller Libris ID) via URL-parametrar och returnerar en XML-fil med status för de exemplar som hittas.
 
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-php)
+1. Installationsguide för utvecklare och servertekniker
+Följ dessa steg för att installera applikationen lokalt eller på en produktionsserver.
 
-A **development container** is a running container with a well-defined tool/runtime stack and its prerequisites. You can try out development containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
+Steg 1: Klona eller ladda ner repository
+Klona repositoryt till din server eller lokala miljö:
 
-This is a sample project that lets you try out either option in a few easy steps. We have a variety of other [vscode-remote-try-*](https://github.com/search?q=org%3Amicrosoft+vscode-remote-try-&type=Repositories) sample projects, too.
+git clone [DITT_REPOSITORY_URL]
+cd [PROJEKTETS_NAMN]
 
-> **Note:** If you already have a Codespace or dev container, you can jump to the [Things to try](#things-to-try) section.
+Steg 2: Installera beroenden
+Applikationen använder Composer för att hantera beroenden. Se till att Composer är installerat på ditt system och kör sedan:
 
-## Setting up the development container
+composer install
 
-### GitHub Codespaces
-Follow these steps to open this sample in a Codespace:
-1. Click the **Code** drop-down menu.
-2. Click on the **Codespaces** tab.
-3. Click **Create codespace on main**.
+Detta kommer att installera alla nödvändiga bibliotek, inklusive Monolog för loggning och Dotenv för att hantera miljövariabler.
 
-For more info, check out the [GitHub documentation](https://docs.github.com/en/free-pro-team@latest/github/developing-online-with-codespaces/creating-a-codespace#creating-a-codespace).
+Steg 3: Konfiguration (Miljövariabler)
+Applikationen läser sina konfigurationsinställningar från miljövariabler. För att köra applikationen lokalt kan du skapa en .env-fil i projektets rotmapp. I en produktionsmiljö (t.ex. på Clever Cloud) konfigureras dessa variabler direkt i plattformens inställningar.
 
-### VS Code Dev Containers
+Följande variabler måste vara definierade:
 
-If you already have VS Code and Docker installed, you can click the badge above or [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-php) to get started. Clicking these links will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
+# API-nycklar för autentisering mot Sierra API
+API_KEY="[Din API-nyckel här]"
+API_SECRET="[Din API-nyckel här]"
 
-Follow these steps to open this sample in a container using the VS Code Dev Containers extension:
+# Bas-URL för Sierra API
+API_BASE_URL="[https://example.com/iii/sierra-api/](https://example.com/iii/sierra-api/)"
 
-1. If this is your first time using a development container, please ensure your system meets the pre-reqs (i.e. have Docker installed) in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
+# Ursprung som tillåts att göra anrop mot denna tjänst (CORS)
+# Separera flera ursprung med kommatecken, t.ex. "[https://libris.kb.se](https://libris.kb.se),[https://example.com](https://example.com)"
+ALLOWED_ORIGINS="[Tillåtet ursprung]"
 
-2. To use this repository, you can either open the repository in an isolated Docker volume:
+# Övriga konfigurationsvariabler
+ACTIVE=true
+LOG_LEVEL=info
+LOG_DESTINATION=/path/to/your/log/file.log
 
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Try a Sample...** command.
-    - Choose the "PHP" sample, wait for the container to start, and try things out!
-        > **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
+Observera: Om LOG_DESTINATION inte är skrivbar kommer loggarna automatiskt att skickas till php://stderr, vilket är standard i molnbaserade miljöer.
 
-   Or open a locally cloned copy of the code:
+Steg 4: Köra applikationen
+Denna applikation är en webbtjänst. Du kan köra den med PHP:s inbyggda webbserver för testning:
 
-   - Clone this repository to your local filesystem.
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Open Folder in Container...** command.
-   - Select the cloned copy of this folder, wait for the container to start, and try things out!
+php -S 0.0.0.0:8080 -t public
 
-## Things to try
+Applikationen blir då tillgänglig på http://localhost:8080.
 
-Once you have this sample opened, you'll be able to work with it like you would locally.
+Steg 5: Köra tester
+För att verifiera att allt fungerar som det ska, kan du köra enhetstesterna med PHPUnit:
 
-Some things to try:
+./vendor/bin/phpunit
 
-1. **Edit:**
-   - Open `index.php`
-   - Try adding some code and check out the language features.
-   - Make a spelling mistake and notice it is detected. The [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension was automatically installed because it is referenced in `.devcontainer/devcontainer.json`.
-   - Also notice that utilities like `Xdebug` and the [PHP Intelephense](https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client) extension are installed. Tools are installed in the `mcr.microsoft.com/devcontainers/php` image and Dev Container settings and metadata are automatically picked up from [image labels](https://containers.dev/implementors/reference/#labels).
+2. Konfigurationsreferens för administratörer
+Det här avsnittet förklarar syftet med varje inställning. Använd det för att förstå vad du konfigurerar på din server.
 
+Autentiserings- och API-inställningar
+API_KEY och API_SECRET: Dessa är dina unika nycklar för att få tillgång till bibliotekets API. De fungerar som en kombination av användarnamn och lösenord som verifierar att din applikation har behörighet att hämta data.
 
-1. **Terminal:** Press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>\`</kbd> and type `uname` and other Linux commands from the terminal window.
+API_BASE_URL: Detta är basadressen till bibliotekets API-tjänst. Hela URL-strängen ser ut som: https://[ditt_bibliotek].se/iii/sierra-api/.
 
-1. **Run and Debug:**
-   - Open `index.php`
-   - Add a breakpoint (e.g. on line 4).
-   - Press <kbd>F5</kbd> to launch the app in the container.
-   - Once the breakpoint is hit, try hovering over variables, examining locals, and more.
+TOKEN_ENDPOINT, QUERY_ENDPOINT, ITEMS_ENDPOINT: Dessa definierar de specifika sökvägarna (endpoints) som applikationen använder för att hämta API-åtkomsttoken, söka efter poster och hämta information om exemplar. Om din API-adress skulle ändras, justera dessa variabler därefter.
 
-1. **Running a server:**
-   - From the terminal, run `php -S 0.0.0.0:8000`
-   - Click "Open in Browser" in the notification that appears to access the web app on this new port.
-      - You can view an organized table of your forwarded ports in the 'Ports' view, which can be accessed with the command **Ports: Focus on Ports View**.
-      - Notice port 8000 in the 'Ports' view is labeled "Hello Remote World." In `devcontainer.json`, you can set `"portsAttributes"`, such as a label for your forwarded ports and the action to be taken when the port is autoforwarded.
-   - Look back at the terminal, and you should see the output from your site navigations.
-   - Edit the text on line 21 in `index.php` and refresh the page to see the changes immediately take effect.
+Sök- och fältkonfiguration
+QUERY_OFFSET och QUERY_LIMIT: Dessa variabler används för paginering i API-anropen.
 
-1. **Attach debugger to the server:**
-   - Follow the previous steps to start up a PHP server and open a browser on port `8000`
-   - Press <kbd>F1</kbd> and select the **View: Show Debug** command.
-   - Pick "Listen for XDebug" from the dropdown.
-   - Press <kbd>F5</kbd> to attach the debugger.
-   - Add a breakpoint to `index.php` if you haven't already.
-   - Reload your browser window.
-   - Once the breakpoint is hit, try hovering over variables, examining locals, and more.
+QUERY_OFFSET bestämmer hur många poster som ska hoppas över i sökresultatet (startposition).
 
-5. **Install Node.js using a Dev Container Feature:**
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Configure Container Features...** or **Codespaces: Configure Container Features...** command.
-   - Type "node" in the text box at the top.
-   - Check the check box next to "Node.js (via nvm) and yarn" (published by devcontainers) 
-   - Click OK
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Rebuild Container** or **Codespaces: Rebuild Container** command so the modifications are picked up.
+QUERY_LIMIT sätter det maximala antalet poster som returneras per anrop.
 
-## Contributing
+QUERY_LIBRIS_ID: Definierar Sierra API-sökfältet som används för att matcha ett Libris ID. Värdet tag:j är en specifik sökparameter i Sierra API som kopplar till Libris ID.
 
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+QUERY_ISBN: Definierar Sierra API-sökfältet som används för att matcha ett ISBN (International Standard Book Number). Värdet tag:i är en specifik sökparameter i Sierra API som kopplar till ISBN.
 
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+QUERY_ISSN: Definierar Sierra API-sökfältet som används för att matcha ett ISSN (International Standard Serial Number). Värdet marcTag:022 är MARC 21-taggen för ISSN.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+QUERY_ONR: Definierar Sierra API-sökfältet som används för att matcha ett Order Number eller ett annat systemkontrollnummer. Värdet marcTag:035 är MARC 21-taggen för System Control Number.
 
-## License
+ITEM_FIELDS: En kommaseparerad lista över de fält som ska hämtas för varje exemplar (item) från API:et. Standardvärden är location (hyllplats), callNumber (signum) och status (utlåningsstatus). Du kan lägga till eller ta bort fält beroende på dina behov.
 
-Copyright © Microsoft Corporation All rights reserved.<br />
-Licensed under the MIT License. See LICENSE in the project root for license information.
+Applikations- och logginställningar
+ACTIVE: En enkel på/av-knapp för applikationen. Om värdet är true är tjänsten aktiv, om false är den inaktiverad och returnerar ett fel.
+
+LOG_LEVEL och LOG_DESTINATION:
+
+LOG_LEVEL: Bestämmer hur detaljerade loggarna ska vara. Värden kan vara debug (allt), info (viktig information), warning (varningar), error (fel) etc. I en produktionsmiljö rekommenderas info eller warning för att undvika att loggfilerna blir för stora.
+
+LOG_DESTINATION: Bestämmer var loggfilerna ska sparas på servern. Om applikationen körs i en molnmiljö, kan du vanligtvis strunta i den här inställningen eftersom loggarna istället visas i molntjänstens konsol.
