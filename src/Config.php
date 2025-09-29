@@ -43,7 +43,7 @@ class Config implements ConfigInterface
         
 
         $this->data = [
-            'api_key' => (string) ($env['API_KEY'] ?? ''),
+            'api_key' => is_string($env['API_KEY'] ?? null) ? $env['API_KEY'] : '',
             'api_secret' => (string) ($env['API_SECRET'] ?? ''),
             'allowed_origins' => (string) ($env['ALLOWED_ORIGINS'] ?? ''),
             'api_base_url' => (string) ($env['API_BASE_URL'] ?? ''),
