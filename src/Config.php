@@ -93,7 +93,7 @@ class Config implements ConfigInterface
     }
     /**
      * Hämtar en sträng från env-källan, garanterar att den är en sträng (eller null).
-     * * @param array<string, mixed> $env
+     * @param array<string, mixed> $env
      */
     private function getStringValue(array $env, string $key, ?string $default = ''): ?string
     {
@@ -112,7 +112,7 @@ class Config implements ConfigInterface
 
     /**
      * Hämtar ett heltal från env-källan, garanterar att det är ett heltal.
-     * * @param array<string, mixed> $env
+     * @param array<string, mixed> $env
      */
     private function getIntValue(array $env, string $key, int $default = 0): int
     {
