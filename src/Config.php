@@ -42,7 +42,7 @@ class Config implements ConfigInterface
         $env = array_merge($env, $_ENV, $_SERVER);
 
         /**
-         * @var array<string, mixed> $env 
+         * @var array<string, mixed> $env
          */
         $env = $env; // Denna rad behövs tekniskt inte men gör DocBlock-tilldelningen tydlig.
 
@@ -54,23 +54,23 @@ class Config implements ConfigInterface
             'token_endpoint' => $this->getStringValue($env, 'TOKEN_ENDPOINT'),
             'query_endpoint' => $this->getStringValue($env, 'QUERY_ENDPOINT'),
             'items_endpoint' => $this->getStringValue($env, 'ITEMS_ENDPOINT'),
-            
+
             'query_parameters' => [
                 'offset' => $this->getIntValue($env, 'QUERY_OFFSET', 0),
                 'limit' => $this->getIntValue($env, 'QUERY_LIMIT', 10)
             ],
-            
+
             'query_fields' => [
                 'bib_id' => $this->parseFieldString($this->getStringValue($env, 'QUERY_LIBRIS_ID', null)),
                 'isbn' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ISBN', null)),
                 'issn' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ISSN', null)),
                 'onr' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ONR', null))
             ],
-            
+
             'item_fields' => $this->getStringValue($env, 'ITEM_FIELDS', 'location,callNumber,status'),
-            
+
             'active' => filter_var($env['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
-            
+
             'log_level' => $this->getStringValue($env, 'LOG_LEVEL', 'debug'),
             'log_destination' => $this->getStringValue($env, 'LOG_DESTINATION', 'php://stderr')
         ];
@@ -126,7 +126,7 @@ class Config implements ConfigInterface
         if (is_scalar($value)) {
             return (int) \intval($value);
         }
-        
+
         return $default;
     }
 
