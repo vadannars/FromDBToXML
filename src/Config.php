@@ -93,36 +93,35 @@ class Config implements ConfigInterface
     }
     /**
      * Hämtar en sträng från env-källan, garanterar att den är en sträng (eller null).
+     * * @param array<string, mixed> $env
      */
     private function getStringValue(array $env, string $key, ?string $default = ''): ?string
     {
-        // Försök hämta värdet. Om det inte finns, använd standardvärdet.
         $value = $env[$key] ?? $default;
 
-        // Om värdet är en sträng (inklusive om det kommer från Dotenv/CleverCloud) eller null (om default var null), returnera det.
         if (is_string($value) || $value === null) {
             return $value;
         }
 
-        // Om värdet är något annat (t.ex. array, object, bool), returnera standardvärdet som är garanterat en sträng eller null.
-        // Vi castar det till sträng om default inte är null, för att hantera bools/nummer korrekt.
-        return ($default !== null) ? (string)$value : null;
+        if (is_scalar($value)) {
+            return (string)$value;
+        }
+
+        return $default;
     }
 
     /**
      * Hämtar ett heltal från env-källan, garanterar att det är ett heltal.
+     * * @param array<string, mixed> $env
      */
     private function getIntValue(array $env, string $key, int $default = 0): int
     {
         $value = $env[$key] ?? $default;
 
-        // Om värdet är en skalär typ (string, int, float, bool) eller null, kan vi köra intval säkert.
-        if (is_scalar($value) || $value === null) {
-            // Vi använder intval() för att tvinga fram ett heltal
-            return (int) \intval($value ?? $default);
+        if (is_scalar($value)) {
+            return (int) \intval($value);
         }
         
-        // Annars (om det är en array/objekt) returnerar vi standardvärdet.
         return $default;
     }
 
