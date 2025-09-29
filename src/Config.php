@@ -44,21 +44,21 @@ class Config implements ConfigInterface
 
         $this->data = [
             'api_key' => is_string($env['API_KEY'] ?? null) ? $env['API_KEY'] : '',
-            'api_secret' => (string) ($env['API_SECRET'] ?? ''),
-            'allowed_origins' => (string) ($env['ALLOWED_ORIGINS'] ?? ''),
-            'api_base_url' => (string) ($env['API_BASE_URL'] ?? ''),
-            'token_endpoint' => (string) ($env['TOKEN_ENDPOINT'] ?? ''),
-            'query_endpoint' => (string) ($env['QUERY_ENDPOINT'] ?? ''),
-            'items_endpoint' => (string) ($env['ITEMS_ENDPOINT'] ?? ''),
+            'api_secret' => is_string($env['API_SECRET'] ?? null) ? $env['API_SECRET'] : '',
+            'allowed_origins' => is_string($env['ALLOWED_ORIGINS'] ?? null) ? $env['ALLOWED_ORIGINS'] : '',
+            'api_base_url' => is_string($env['API_BASE_URL'] ?? null) ? $env['API_BASE_URL'] : '',
+            'token_endpoint' => is_string($env['TOKEN_ENDPOINT'] ?? null) ? $env['TOKEN_ENDPOINT'] : '',
+            'query_endpoint' => is_string($env['QUERY_ENDPOINT'] ?? null) ? $env['QUERY_ENDPOINT'] : '',
+            'items_endpoint' => is_string($env['ITEMS_ENDPOINT'] ?? null) ? $env['ITEMS_ENDPOINT'] : '',
             'query_parameters' => [
-                'offset' => (int) ($env['QUERY_OFFSET'] ?? 0),
-                'limit' => (int) ($env['QUERY_LIMIT'] ?? 10)
+                'offset' => (int) \intval($env['QUERY_OFFSET'] ?? 0),
+                'limit' => (int) \intval($env['QUERY_LIMIT'] ?? 10)
             ],
             'query_fields' => [
-                'bib_id' => $this->parseFieldString($env['QUERY_LIBRIS_ID'] ?? null),
-                'isbn' => $this->parseFieldString($env['QUERY_ISBN'] ?? null),
-                'issn' => $this->parseFieldString($env['QUERY_ISSN'] ?? null),
-                'onr' => $this->parseFieldString($env['QUERY_ONR'] ?? null)
+                'bib_id' => $this->parseFieldString(is_string($env['QUERY_LIBRIS_ID'] ?? null) ? $env['QUERY_LIBRIS_ID'] : null),
+                'isbn' => $this->parseFieldString(is_string($env['QUERY_ISBN'] ?? null) ? $env['QUERY_ISBN'] : null),
+                'issn' => $this->parseFieldString(is_string($env['QUERY_ISSN'] ?? null) ? $env['QUERY_ISSN'] : null),
+                'onr' => $this->parseFieldString(is_string($env['QUERY_ONR'] ?? null) ? $env['QUERY_ONR'] : null)
             ],
             'item_fields' => (string) ($env['ITEM_FIELDS'] ?? 'location,callNumber,status'),
             'active' => filter_var($env['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
