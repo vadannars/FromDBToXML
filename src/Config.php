@@ -41,6 +41,11 @@ class Config implements ConfigInterface
 
         $env = array_merge($env, $_ENV, $_SERVER);
 
+        /**
+         * @var array<string, mixed> $env 
+         */
+        $env = $env; // Denna rad behövs tekniskt inte men gör DocBlock-tilldelningen tydlig.
+
         $this->data = [
             'api_key' => $this->getStringValue($env, 'API_KEY'),
             'api_secret' => $this->getStringValue($env, 'API_SECRET'),
