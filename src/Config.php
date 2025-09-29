@@ -27,9 +27,20 @@ class Config implements ConfigInterface
      */
     public function __construct(string $envPath)
     {
-        //$dotenv = Dotenv::createImmutable($envPath);
-        //$env = $dotenv->safeLoad();
-        $env = $_ENV + $_SERVER;
+        $appEnv = $_SERVER['APP_ENV'] ?? 'local';
+        $env = [];
+
+        if ($appEnv === 'local' || $appEnv === 'development') {
+            try {
+                $dotenv = Dotenv::createImmutable($envPath);
+                $env = $dotenv->safeLoad();
+            } catch (\Exception $e) {
+                error_log("Varning: .env-filen hittades inte lokalt. " . $e->getMessage());
+            }
+        }
+
+        $env = array_merge($env, $_ENV, $_SERVER);
+        
 
         $this->data = [
             'api_key' => (string) ($env['API_KEY'] ?? ''),
