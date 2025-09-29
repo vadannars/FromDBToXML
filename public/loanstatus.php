@@ -49,6 +49,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+error_log("--- APP BOOTSTRAP STARTING ---");
+
 use App\Config;
 use App\ConfigInterface;
 use App\SierraApiClient;

@@ -27,8 +27,9 @@ class Config implements ConfigInterface
      */
     public function __construct(string $envPath)
     {
-        $dotenv = Dotenv::createImmutable($envPath);
-        $env = $dotenv->safeLoad();
+        //$dotenv = Dotenv::createImmutable($envPath);
+        //$env = $dotenv->safeLoad();
+        $env = $_ENV + $_SERVER;
 
         $this->data = [
             'api_key' => (string) ($env['API_KEY'] ?? ''),
