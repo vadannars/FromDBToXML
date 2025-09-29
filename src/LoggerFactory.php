@@ -35,15 +35,7 @@ class LoggerFactory
         $configLevel = $config->getLogLevel();
         $level = $levelMap[$configLevel] ?? Level::Debug;
 
-        try {
-            $handler = new StreamHandler($logDestination, $level);
-        } catch (\Exception $e) {
-            error_log(
-                "Kunde inte skriva till loggfil: " . $e->getMessage() .
-                " - loggar till stderr istället."
-            );
-            $handler = new StreamHandler('php://stderr', $level);
-        }
+        $handler = new StreamHandler($logDestination, $level);
 
         $handler->setFormatter(new LineFormatter(null, null, true, true));
 

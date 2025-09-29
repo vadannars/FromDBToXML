@@ -51,7 +51,7 @@ class Config implements ConfigInterface
             'item_fields' => (string) ($env['ITEM_FIELDS'] ?? 'location,callNumber,status'),
             'active' => filter_var($env['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
             'log_level' => (string) ($env['LOG_LEVEL'] ?? 'debug'),
-            'log_destination' => (string) ($env['LOG_DESTINATION'] ?? __DIR__ . '/../logs/app.log')
+            'log_destination' => (string) ($env['LOG_DESTINATION'] ?? 'php://stderr')
         ];
     }
 
