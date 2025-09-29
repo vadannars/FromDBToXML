@@ -121,7 +121,7 @@ try {
     }
     header('Content-Type: application/json; charset=utf-8');
     http_response_code(500);
-    echo json_encode(['error' => 'Ett internt serverfel inträffade. Vänligen kontrollera serverloggarna för mer information.']);
+    echo json_encode(['error' => 'Ett internt serverfel inträffade. Vänligen kontrollera serverloggarna för mer information.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
