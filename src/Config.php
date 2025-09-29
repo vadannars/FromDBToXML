@@ -40,30 +40,34 @@ class Config implements ConfigInterface
         }
 
         $env = array_merge($env, $_ENV, $_SERVER);
-        
 
         $this->data = [
-            'api_key' => is_string($env['API_KEY'] ?? null) ? $env['API_KEY'] : '',
-            'api_secret' => is_string($env['API_SECRET'] ?? null) ? $env['API_SECRET'] : '',
-            'allowed_origins' => is_string($env['ALLOWED_ORIGINS'] ?? null) ? $env['ALLOWED_ORIGINS'] : '',
-            'api_base_url' => is_string($env['API_BASE_URL'] ?? null) ? $env['API_BASE_URL'] : '',
-            'token_endpoint' => is_string($env['TOKEN_ENDPOINT'] ?? null) ? $env['TOKEN_ENDPOINT'] : '',
-            'query_endpoint' => is_string($env['QUERY_ENDPOINT'] ?? null) ? $env['QUERY_ENDPOINT'] : '',
-            'items_endpoint' => is_string($env['ITEMS_ENDPOINT'] ?? null) ? $env['ITEMS_ENDPOINT'] : '',
+            'api_key' => $this->getStringValue($env, 'API_KEY'),
+            'api_secret' => $this->getStringValue($env, 'API_SECRET'),
+            'allowed_origins' => $this->getStringValue($env, 'ALLOWED_ORIGINS'),
+            'api_base_url' => $this->getStringValue($env, 'API_BASE_URL'),
+            'token_endpoint' => $this->getStringValue($env, 'TOKEN_ENDPOINT'),
+            'query_endpoint' => $this->getStringValue($env, 'QUERY_ENDPOINT'),
+            'items_endpoint' => $this->getStringValue($env, 'ITEMS_ENDPOINT'),
+            
             'query_parameters' => [
-                'offset' => (int) \intval($env['QUERY_OFFSET'] ?? 0),
-                'limit' => (int) \intval($env['QUERY_LIMIT'] ?? 10)
+                'offset' => $this->getIntValue($env, 'QUERY_OFFSET', 0),
+                'limit' => $this->getIntValue($env, 'QUERY_LIMIT', 10)
             ],
+            
             'query_fields' => [
-                'bib_id' => $this->parseFieldString(is_string($env['QUERY_LIBRIS_ID'] ?? null) ? $env['QUERY_LIBRIS_ID'] : null),
-                'isbn' => $this->parseFieldString(is_string($env['QUERY_ISBN'] ?? null) ? $env['QUERY_ISBN'] : null),
-                'issn' => $this->parseFieldString(is_string($env['QUERY_ISSN'] ?? null) ? $env['QUERY_ISSN'] : null),
-                'onr' => $this->parseFieldString(is_string($env['QUERY_ONR'] ?? null) ? $env['QUERY_ONR'] : null)
+                'bib_id' => $this->parseFieldString($this->getStringValue($env, 'QUERY_LIBRIS_ID', null)),
+                'isbn' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ISBN', null)),
+                'issn' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ISSN', null)),
+                'onr' => $this->parseFieldString($this->getStringValue($env, 'QUERY_ONR', null))
             ],
-            'item_fields' => (string) ($env['ITEM_FIELDS'] ?? 'location,callNumber,status'),
+            
+            'item_fields' => $this->getStringValue($env, 'ITEM_FIELDS', 'location,callNumber,status'),
+            
             'active' => filter_var($env['ACTIVE'] ?? false, FILTER_VALIDATE_BOOL),
-            'log_level' => (string) ($env['LOG_LEVEL'] ?? 'debug'),
-            'log_destination' => (string) ($env['LOG_DESTINATION'] ?? 'php://stderr')
+            
+            'log_level' => $this->getStringValue($env, 'LOG_LEVEL', 'debug'),
+            'log_destination' => $this->getStringValue($env, 'LOG_DESTINATION', 'php://stderr')
         ];
     }
 
@@ -86,6 +90,40 @@ class Config implements ConfigInterface
             'type' => $parts[0],
             'value' => $parts[1]
         ];
+    }
+    /**
+     * Hämtar en sträng från env-källan, garanterar att den är en sträng (eller null).
+     */
+    private function getStringValue(array $env, string $key, ?string $default = ''): ?string
+    {
+        // Försök hämta värdet. Om det inte finns, använd standardvärdet.
+        $value = $env[$key] ?? $default;
+
+        // Om värdet är en sträng (inklusive om det kommer från Dotenv/CleverCloud) eller null (om default var null), returnera det.
+        if (is_string($value) || $value === null) {
+            return $value;
+        }
+
+        // Om värdet är något annat (t.ex. array, object, bool), returnera standardvärdet som är garanterat en sträng eller null.
+        // Vi castar det till sträng om default inte är null, för att hantera bools/nummer korrekt.
+        return ($default !== null) ? (string)$value : null;
+    }
+
+    /**
+     * Hämtar ett heltal från env-källan, garanterar att det är ett heltal.
+     */
+    private function getIntValue(array $env, string $key, int $default = 0): int
+    {
+        $value = $env[$key] ?? $default;
+
+        // Om värdet är en skalär typ (string, int, float, bool) eller null, kan vi köra intval säkert.
+        if (is_scalar($value) || $value === null) {
+            // Vi använder intval() för att tvinga fram ett heltal
+            return (int) \intval($value ?? $default);
+        }
+        
+        // Annars (om det är en array/objekt) returnerar vi standardvärdet.
+        return $default;
     }
 
     /**
