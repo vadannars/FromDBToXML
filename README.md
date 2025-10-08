@@ -1,89 +1,203 @@
-Loan Status API Client
-Detta är en PHP-applikation som fungerar som en mellanhand mellan Libris och ett biblioteks-API (Sierra API) för att hämta status på böcker. Applikationen tar emot identifierare (som ISBN eller Libris ID) via URL-parametrar och returnerar en XML-fil med status för de exemplar som hittas.
-
-1. Installationsguide för utvecklare och servertekniker
-Följ dessa steg för att installera applikationen lokalt eller på en produktionsserver.
-
-Steg 1: Klona eller ladda ner repository
-Klona repositoryt till din server eller lokala miljö:
-
 git clone [DITT_REPOSITORY_URL]
-cd [PROJEKTETS_NAMN]
 
-Steg 2: Installera beroenden
-Applikationen använder Composer för att hantera beroenden. Se till att Composer är installerat på ditt system och kör sedan:
 
+# Lånestatus API-klient
+
+Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på böcker genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
+
+**Typiskt användningsfall:**
+Ett system skickar en förfrågan med en bokidentifierare och får tillbaka ett XML-svar som visar om boken är tillgänglig, utlånad, reserverad osv.
+
+---
+
+## Funktioner
+
+- Accepterar flera typer av identifierare (ISBN, Libris-ID, ISSN, ONR)
+- Kommunicerar säkert med Sierra API
+- Returnerar resultat i ett standardiserat XML-format
+- Konfigureras via miljövariabler eller `.env`-fil
+- Robust felhantering och loggning
+- Enkel att driftsätta lokalt eller i molnet
+
+---
+
+
+
+## Installation och kom igång
+
+### 1. Klona projektet
+```bash
+git clone [DIN_REPOSITORY_URL]
+cd [PROJEKTNAMN]
+```
+
+### 2. Installera PHP och Composer
+- PHP 8.2 eller senare krävs.
+- Composer installeras enligt [officiell guide](https://getcomposer.org/download/).
+
+### 3. Installera beroenden
+```bash
 composer install
+```
 
-Detta kommer att installera alla nödvändiga bibliotek, inklusive Monolog för loggning och Dotenv för att hantera miljövariabler.
+### 4. Sätt upp miljövariabler
+- **Rekommenderat:** Sätt miljövariabler direkt i serverns miljö (t.ex. via webbhotellspanel, systemd, Docker eller liknande).
+- **Alternativ:** Kopiera `.env.example` till `.env` och fyll i värdena.
+- Exempel på viktiga variabler:
+  ```
+  API_KEY=din_api_nyckel
+  API_SECRET=din_api_hemlighet
+  API_BASE_URL=https://ditt-bibliotek.se/iii/sierra-api/
+  ALLOWED_ORIGINS=https://libris.kb.se,https://din-domän.se
+  ACTIVE=true
+  LOG_LEVEL=info
+  LOG_DESTINATION=/sökväg/till/loggfil.log
+  ```
+Se `.env.example` för alla tillgängliga alternativ och beskrivningar.
+> **Obs!** I produktion kan du sätta dessa som miljövariabler direkt om din plattform stödjer det (rekommenderas för servertekniker).
 
-Steg 3: Konfiguration (Miljövariabler)
-Applikationen läser sina konfigurationsinställningar från miljövariabler. För att köra applikationen lokalt kan du skapa en .env-fil i projektets rotmapp. I en produktionsmiljö (t.ex. på Clever Cloud) konfigureras dessa variabler direkt i plattformens inställningar.
+### 5. Sätt rättigheter på loggkatalogen
+Se till att katalogen för loggar (`logs/` eller den du anger i `LOG_DESTINATION`) är skrivbar för webbserverns användare.
+Exempel (Linux):
+```bash
+mkdir -p logs
+chown www-data:www-data logs
+chmod 770 logs
+```
 
-Följande variabler måste vara definierade:
+### 6. Konfigurera webbservern
+- Peka webbserverns dokumentrot mot projektets `public/`-katalog.
+- Exempel för Apache (se även `apache.conf` i projektet):
+  ```
+  DocumentRoot /sökväg/till/projektet/public
+  DirectoryIndex loanstatus.php index.php index.html
+  <Directory "/sökväg/till/projektet/public">
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Require all granted
+  </Directory>
+  ```
+- För Nginx eller annan server: se till att PHP-filer i `public/` kan exekveras.
 
-# API-nycklar för autentisering mot Sierra API
-API_KEY="[Din API-nyckel här]"
-API_SECRET="[Din API-nyckel här]"
-
-# Bas-URL för Sierra API
-API_BASE_URL="[https://example.com/iii/sierra-api/](https://example.com/iii/sierra-api/)"
-
-# Ursprung som tillåts att göra anrop mot denna tjänst (CORS)
-# Separera flera ursprung med kommatecken, t.ex. "[https://libris.kb.se](https://libris.kb.se),[https://example.com](https://example.com)"
-ALLOWED_ORIGINS="[Tillåtet ursprung]"
-
-# Övriga konfigurationsvariabler
-ACTIVE=true
-LOG_LEVEL=info
-LOG_DESTINATION=/path/to/your/log/file.log
-
-Observera: Om LOG_DESTINATION inte är skrivbar kommer loggarna automatiskt att skickas till php://stderr, vilket är standard i molnbaserade miljöer.
-
-Steg 4: Köra applikationen
-Denna applikation är en webbtjänst. Du kan köra den med PHP:s inbyggda webbserver för testning:
-
+### 7. Starta tjänsten
+```bash
 php -S 0.0.0.0:8080 -t public
+```
+API:et är nu tillgängligt på [http://localhost:8080](http://localhost:8080).
 
-Applikationen blir då tillgänglig på http://localhost:8080.
+### 8. Testa installationen
+Besök API:et via webbläsare eller med `curl`:
+```bash
+curl 'https://din-server.se/loanstatus.php?isbn=9789177754657'
+```
+Kontrollera att du får ett XML-svar och att inga fel syns i loggarna.
 
-Steg 5: Köra tester
-För att verifiera att allt fungerar som det ska, kan du köra enhetstesterna med PHPUnit:
-
+### 9. Kör tester
+```bash
 ./vendor/bin/phpunit
+```
 
-2. Konfigurationsreferens för administratörer
-Det här avsnittet förklarar syftet med varje inställning. Använd det för att förstå vad du konfigurerar på din server.
+---
 
-Autentiserings- och API-inställningar
-API_KEY och API_SECRET: Dessa är dina unika nycklar för att få tillgång till bibliotekets API. De fungerar som en kombination av användarnamn och lösenord som verifierar att din applikation har behörighet att hämta data.
+## Så fungerar det
 
-API_BASE_URL: Detta är basadressen till bibliotekets API-tjänst. Hela URL-strängen ser ut som: https://[ditt_bibliotek].se/iii/sierra-api/.
+1. **Förfrågan:**  
+	 En klient skickar en HTTP-förfrågan till `public/loanstatus.php` med en eller flera identifierare som URL-parametrar (t.ex. `?isbn=9781234567890`).
 
-TOKEN_ENDPOINT, QUERY_ENDPOINT, ITEMS_ENDPOINT: Dessa definierar de specifika sökvägarna (endpoints) som applikationen använder för att hämta API-åtkomsttoken, söka efter poster och hämta information om exemplar. Om din API-adress skulle ändras, justera dessa variabler därefter.
+2. **Bearbetning:**  
+	 - Kontrollern (`src/LoanStatusController.php`) validerar indata och styr arbetsflödet.
+	 - Sierra API-klienten (`src/SierraApiClient.php`) autentiserar och söker i Sierra API efter matchande exemplar.
+	 - XML-generatorn (`src/XmlGenerator.php`) formaterar resultatet till ett XML-svar.
 
-Sök- och fältkonfiguration
-QUERY_OFFSET och QUERY_LIMIT: Dessa variabler används för paginering i API-anropen.
+3. **Svar:**  
+	 Tjänsten returnerar en XML-fil med status för varje hittat exemplar.
 
-QUERY_OFFSET bestämmer hur många poster som ska hoppas över i sökresultatet (startposition).
+---
 
-QUERY_LIMIT sätter det maximala antalet poster som returneras per anrop.
+## Konfigurationsreferens
 
-QUERY_LIBRIS_ID: Definierar Sierra API-sökfältet som används för att matcha ett Libris ID. Värdet tag:j är en specifik sökparameter i Sierra API som kopplar till Libris ID.
+All konfiguration sker nu via miljövariabler eller en `.env`-fil. Den gamla `config/config.json` används inte längre.
 
-QUERY_ISBN: Definierar Sierra API-sökfältet som används för att matcha ett ISBN (International Standard Book Number). Värdet tag:i är en specifik sökparameter i Sierra API som kopplar till ISBN.
+**Viktiga inställningar:**
+- `API_KEY` / `API_SECRET`: Inloggningsuppgifter för Sierra API
+- `API_BASE_URL`: Bas-URL till Sierra API (t.ex. `https://ditt-bibliotek.se/iii/sierra-api/`)
+- `ALLOWED_ORIGINS`: Komma-separerad lista över tillåtna domäner för CORS
+- `ACTIVE`: Sätt till `true` för att aktivera tjänsten, `false` för att inaktivera
+- `LOG_LEVEL`: Loggningsnivå (`debug`, `info`, `warning`, `error`)
+- `LOG_DESTINATION`: Sökväg till loggfil (eller lämna tomt för standard)
+- `TOKEN_ENDPOINT`, `QUERY_ENDPOINT`, `ITEMS_ENDPOINT`: Avancerat, för anpassade API-endpoints
+- `QUERY_OFFSET`, `QUERY_LIMIT`, `QUERY_LIBRIS_ID`, `QUERY_ISBN`, `QUERY_ISSN`, `QUERY_ONR`, `ITEM_FIELDS`: Avancerat, för att styra API-frågor och fältmappning
 
-QUERY_ISSN: Definierar Sierra API-sökfältet som används för att matcha ett ISSN (International Standard Serial Number). Värdet marcTag:022 är MARC 21-taggen för ISSN.
+Se `.env.example` för alla tillgängliga alternativ och beskrivningar.
 
-QUERY_ONR: Definierar Sierra API-sökfältet som används för att matcha ett Order Number eller ett annat systemkontrollnummer. Värdet marcTag:035 är MARC 21-taggen för System Control Number.
+> **Tips:** I produktion, sätt dessa som miljövariabler om möjligt för bättre säkerhet och flexibilitet.
 
-ITEM_FIELDS: En kommaseparerad lista över de fält som ska hämtas för varje exemplar (item) från API:et. Standardvärden är location (hyllplats), callNumber (signum) och status (utlåningsstatus). Du kan lägga till eller ta bort fält beroende på dina behov.
+> **Obs!** Om `LOG_DESTINATION` inte är skrivbar skickas loggar automatiskt till `php://stderr` (standard i molnmiljöer).
 
-Applikations- och logginställningar
-ACTIVE: En enkel på/av-knapp för applikationen. Om värdet är true är tjänsten aktiv, om false är den inaktiverad och returnerar ett fel.
+---
 
-LOG_LEVEL och LOG_DESTINATION:
+## Exempel på anrop
 
-LOG_LEVEL: Bestämmer hur detaljerade loggarna ska vara. Värden kan vara debug (allt), info (viktig information), warning (varningar), error (fel) etc. I en produktionsmiljö rekommenderas info eller warning för att undvika att loggfilerna blir för stora.
+```
+GET /loanstatus.php?isbn=9789177754657
+```
 
-LOG_DESTINATION: Bestämmer var loggfilerna ska sparas på servern. Om applikationen körs i en molnmiljö, kan du vanligtvis strunta i den här inställningen eftersom loggarna istället visas i molntjänstens konsol.
+**Svar (XML):**
+```xml
+<status>
+	<channel>
+		<description>Exemplarstatus för böcker i Göteborgs biblioteks katalog</description>
+		<Item_information>
+			<Item>
+				<Item_No>1</Item_No>
+				<Location>Huvudbiblioteket</Location>
+				<Call_No>Hce.3</Call_No>
+				<Status>Utlånad</Status>
+				<Status_Date>2025-09-30</Status_Date>
+				<Status_Date_Description>ÅTER </Status_Date_Description>
+				<Loan_Policy></Loan_Policy>
+				<UniqueItemId></UniqueItemId>
+			</Item>
+			<!-- Fler exemplar... -->
+		</Item_information>
+	</channel>
+</status>
+```
+
+---
+
+## Felsökning
+
+- **Inget svar / 500-fel:**  
+	Kontrollera att alla nödvändiga miljövariabler är satta och giltiga. Se loggar för detaljer.
+
+- **CORS-fel:**  
+	Kontrollera att `ALLOWED_ORIGINS` innehåller domänen som gör anropet.
+
+- **Loggfilen skrivs inte:**  
+	Kontrollera att `LOG_DESTINATION` är skrivbar, eller lämna tomt för standardloggning.
+
+---
+
+## Utveckling & bidrag
+
+- Koden följer PSR-12 (se `phpcs.xml`)
+- Tester finns i katalogen `tests/` och använder PHPUnit
+- Loggning sker med Monolog
+- HTTP-anrop görs med Guzzle
+
+---
+
+## Säkerhet & uppförandekod
+
+- Se `SECURITY.md` för instruktioner om säkerhetsrapportering.
+- Projektet följer [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+
+---
+
+## Mer läsning
+
+- Se `.github/copilot-instructions.md` för teknisk arkitektur och AI-agentinstruktioner.
+- Se `projectinfo.txt` för sammanfattning av konfiguration och driftsättning.
+
+---

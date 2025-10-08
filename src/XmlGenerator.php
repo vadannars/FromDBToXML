@@ -54,7 +54,7 @@ class XmlGenerator
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><status></status>');
 
         $channel = $xml->addChild('channel');
-        $channel->addChild('description', 'Exemplarstatus för böcker i Göteborgs biblioteks katalog');
+        $channel->addChild('description', 'Exemplarstatus för media i Göteborgs biblioteks katalog');
         $itemInfo = $channel->addChild('Item_information');
 
         $counter = 1;
