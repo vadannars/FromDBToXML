@@ -1,12 +1,12 @@
-git clone [DITT_REPOSITORY_URL]
-
 
 # Lånestatus API-klient
 
-Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på böcker genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
+Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på media genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
 
 **Typiskt användningsfall:**
-Ett system skickar en förfrågan med en bokidentifierare och får tillbaka ett XML-svar som visar om boken är tillgänglig, utlånad, reserverad osv.
+Ett system skickar en förfrågan med en identifierare och får tillbaka ett XML-svar som visar om mediet är tillgängligt, utlånat, reserverat osv.
+
+Den typ av API som ansluts mot är den här: https://sandbox.iii.com/iii/sierra-api/swagger/index.html
 
 ---
 
@@ -42,7 +42,7 @@ composer install
 
 ### 4. Sätt upp miljövariabler
 - **Rekommenderat:** Sätt miljövariabler direkt i serverns miljö (t.ex. via webbhotellspanel, systemd, Docker eller liknande).
-- **Alternativ:** Kopiera `.env.example` till `.env` och fyll i värdena.
+- **Alternativ:** Kopiera `.env.example` till `.env` och fyll i värdena. Se konfigurationsreferensen längre ned för fullständig lista.
 - Exempel på viktiga variabler:
   ```
   API_KEY=din_api_nyckel
@@ -114,25 +114,69 @@ Kontrollera att du får ett XML-svar och att inga fel syns i loggarna.
 
 ---
 
+
 ## Konfigurationsreferens
 
-All konfiguration sker nu via miljövariabler eller en `.env`-fil. Den gamla `config/config.json` används inte längre.
+All konfiguration sker via miljövariabler eller en `.env`-fil. om det är oklart hur de ska anges så försök följa hur de har skrivits in i .env.example. Generellt kan sägas att värden som hanteras som text i logiken läggs in inom ciatationstecken ("textvärde") men andra typer av värden, som integers (siffror) eller booleans (true/false) läggs in utan. Koden ska vara någorlunda robust och kontrollera alla värden så det kan gå även om de läggs in fel, men försök att hålla formen till den som ligger i .env.example. Nedan ligger flera värden med andra typer av ciationstecken, men det är enbart för läsbarhet.
 
-**Viktiga inställningar:**
-- `API_KEY` / `API_SECRET`: Inloggningsuppgifter för Sierra API
-- `API_BASE_URL`: Bas-URL till Sierra API (t.ex. `https://ditt-bibliotek.se/iii/sierra-api/`)
-- `ALLOWED_ORIGINS`: Komma-separerad lista över tillåtna domäner för CORS
-- `ACTIVE`: Sätt till `true` för att aktivera tjänsten, `false` för att inaktivera
-- `LOG_LEVEL`: Loggningsnivå (`debug`, `info`, `warning`, `error`)
+### Grundläggande inställningar
+- `API_KEY` / `API_SECRET`: Inloggningsuppgifter för Sierra API. Biblioteket behöver skapa en specifik api-användare vars hemlighet och nyckel används för funktionen.
+- `API_BASE_URL`: Bas-URL till Sierra API (aktuell vid publicering: `"https://gotlib.goteborg.se/iii/sierra-api/v6"`)
+- `ALLOWED_ORIGINS`: Komma-separerad lista över tillåtna domäner för CORS. Det här är alltså domäner som tillåts ansluta mot tjänsten. I sak behövs bara `"https://libris.kb.se"` men fler kan läggas till för testning eller framtida ändringar.
+- `ACTIVE`: Sätt till `true` för att aktivera tjänsten, `false` för att inaktivera. Av/På för appen om ni vill stoppa den men inte stänga ner den på servern.
+- `LOG_LEVEL`: Loggningsnivå (se nedan)
 - `LOG_DESTINATION`: Sökväg till loggfil (eller lämna tomt för standard)
-- `TOKEN_ENDPOINT`, `QUERY_ENDPOINT`, `ITEMS_ENDPOINT`: Avancerat, för anpassade API-endpoints
-- `QUERY_OFFSET`, `QUERY_LIMIT`, `QUERY_LIBRIS_ID`, `QUERY_ISBN`, `QUERY_ISSN`, `QUERY_ONR`, `ITEM_FIELDS`: Avancerat, för att styra API-frågor och fältmappning
 
-Se `.env.example` för alla tillgängliga alternativ och beskrivningar.
+### Loggning
+`LOG_LEVEL` styr hur detaljerad loggningen blir. Följande nivåer stöds (från mest till minst detaljerad):
+
+- `debug` – Allt loggas (mest detaljerad, för felsökning)
+- `info` – Viktig information om normal drift
+- `notice` – Notiser om ovanliga men ej kritiska händelser
+- `warning` – Varningar om potentiella problem
+- `error` – Fel som kräver åtgärd
+- `critical` – Kritiska fel som påverkar funktionalitet
+- `alert` – Allvarliga fel som kräver omedelbar åtgärd
+- `emergency` – Systemet är obrukbart
+
+Exempel:
+```
+LOG_LEVEL=info
+```
+
+Om `LOG_DESTINATION` inte är skrivbar skickas loggar automatiskt till `php://stderr` (standard i molnmiljöer).
+
+### API-endpoints
+- `TOKEN_ENDPOINT`:
+	Adressen för autentisering mot Sierras API. Finns som variabel om adressen skulle ändras i framtiden.
+- `QUERY_ENDPOINT`:
+	Adressen för att skicka JSON-querys för lista med bibliografiska poster.
+- `ITEMS_ENDPOINT`:
+	Adressen för hämtning av lista med exemplar från den tidigare funna bibliografiska posten.
+
+### Query-parametrar
+- `QUERY_OFFSET`:
+	Styr var i index sökningen börjar. obligatoriskt värde för att skicka querys. Ska sättas till `0`
+- `QUERY_LIMIT`:
+	Övre gräns för mängden bibliografiska poster som hämtas utifrån queryn. Obligatoriskt för att skicka querys.
+    Satt till 10 för att ha en gräns. Tanken är att en specifik bibliografisk post ska hittas. Sätt till `10`
+- `QUERY_LIBRIS_ID`:
+	Fälttagg och taggvärde för det fält som i Sierra representerar Libris.kb:s identifikationsnummer. Form: "[fälttagg]:[taggvärde]" (inklusive citationstecken). Exempel: `"tag:j"`
+- `QUERY_ISBN`:
+	Som QUERY_LIBRIS_ID men för ISBN. Exempel: `"tag:i"`
+- `QUERY_ISSN`:
+	Som de ovan men för ISSN. Exempel: `"marcTag:022"`
+- `QUERY_ONR`:
+	Som ovan men för ONR, Libris.kb:s äldre identifikationsnummer. Exempel: `"marcTag:035"`
+
+### Item fields
+- `ITEM_FIELDS`:
+	Kommaseparerad lista med de fält från exemplarsposten som ska hämtas. Istället för att hela posten laddas, så tas bara dessa fält. Går att utöka eller minska om behovet finns vid vidareutveckling.
+    Just nu används bara de som anges i exemplet, men det finns placeholders i koden för andra fält och fler taggar i XML-strukturen. För alla tillgängliga fält se https://sandbox.iii.com/iii/sierra-api/swagger/index.html#!/items/Get_an_item_by_record_ID_get_6
+    Exempel: `"location,callNumber,status"`
+Se `.env.example` för exempelvärden och vid tid för publicering aktuella endpoints och fält-taggar.
 
 > **Tips:** I produktion, sätt dessa som miljövariabler om möjligt för bättre säkerhet och flexibilitet.
-
-> **Obs!** Om `LOG_DESTINATION` inte är skrivbar skickas loggar automatiskt till `php://stderr` (standard i molnmiljöer).
 
 ---
 
@@ -192,12 +236,5 @@ GET /loanstatus.php?isbn=9789177754657
 
 - Se `SECURITY.md` för instruktioner om säkerhetsrapportering.
 - Projektet följer [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-
----
-
-## Mer läsning
-
-- Se `.github/copilot-instructions.md` för teknisk arkitektur och AI-agentinstruktioner.
-- Se `projectinfo.txt` för sammanfattning av konfiguration och driftsättning.
 
 ---
