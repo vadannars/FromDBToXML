@@ -302,14 +302,12 @@ class SierraApiClient implements SierraApiClientInterface
         $fields = $this->queryFields;
 
         $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
-        $operator = 'equals';
 
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
-            if ($priorityKey === 'isbn' || $priorityKey === 'issn') {
-                $operator = 'has';
-            }
+            $operator = ('isbn' === $priorityKey || 'issn' === $priorityKey) ? 'has' : 'equals';
+             
             if ($field !== null && $identifierValue !== null) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
@@ -331,7 +329,7 @@ class SierraApiClient implements SierraApiClientInterface
                     $record,
                     $onrField,
                     $onrValue,
-                    $operator
+                    'equals'
                 );
             }
         }

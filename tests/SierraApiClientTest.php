@@ -195,7 +195,7 @@ class SierraApiClientTest extends TestCase
                         // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
                         'field' => ['tag' => 'i'] 
                     ],
-                    'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
+                    'expr' => ['op' => 'has', 'operands' => ['978-1234567890']]
                 ]
             ]
         ];
@@ -227,7 +227,7 @@ class SierraApiClientTest extends TestCase
                         // UPPDATERAT: 'field' är nu en enkel nyckel-värde-pair
                         'field' => ['tag' => 'i'] 
                     ],
-                    'expr' => ['op' => 'equals', 'operands' => ['978-1234567890']]
+                    'expr' => ['op' => 'has', 'operands' => ['978-1234567890']]
                 ],
                 'or',
                 [
