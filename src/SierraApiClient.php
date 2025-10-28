@@ -302,15 +302,20 @@ class SierraApiClient implements SierraApiClientInterface
         $fields = $this->queryFields;
 
         $priorityKey = $this->findFirstAvailableKey($fields, $identifiers, ['bib_id', 'isbn', 'issn']);
+        $operator = 'equals';
 
         if ($priorityKey !== null) {
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
+            if ($priorityKey === 'isbn' || $priorityKey === 'issn') {
+                $operator = 'has';
+            }
             if ($field !== null && $identifierValue !== null) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     $field,
-                    $identifierValue
+                    $identifierValue,
+                    $operator
                 );
             }
         }
@@ -325,7 +330,8 @@ class SierraApiClient implements SierraApiClientInterface
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
                     $onrField,
-                    $onrValue
+                    $onrValue,
+                    $operator
                 );
             }
         }
@@ -346,9 +352,10 @@ class SierraApiClient implements SierraApiClientInterface
      * @param  array<string, mixed>  $record
      * @param  array<string, string> $fieldKey
      * @param  string                $value
+     * @param string                $operator
      * @return array<string, mixed>
      */
-    private function makeFieldQuery(array $record, array $fieldKey, string $value): array
+    private function makeFieldQuery(array $record, array $fieldKey, string $value, string $operator): array
     {
         $formattedField = [
             $fieldKey['type'] => $fieldKey['value']
@@ -360,7 +367,7 @@ class SierraApiClient implements SierraApiClientInterface
                 'field' => $formattedField
             ],
             'expr' => [
-                'op' => 'equals',
+                'op' => $operator,
                 'operands' => [$value]
             ]
         ];

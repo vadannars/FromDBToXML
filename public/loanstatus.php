@@ -64,7 +64,7 @@ try {
     $xmlGenerator = new XmlGenerator($logger);
 
     $controller = new LoanStatusController($apiClient, $xmlGenerator, $logger);
-
+    
     $xml = $controller->handleRequest($identifiers);
 
     header('Content-Type: application/xml; charset=utf-8');
