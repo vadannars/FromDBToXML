@@ -307,7 +307,7 @@ class SierraApiClient implements SierraApiClientInterface
             $field = $fields[$priorityKey];
             $identifierValue = $identifiers[$priorityKey];
             $operator = ('isbn' === $priorityKey || 'issn' === $priorityKey) ? 'has' : 'equals';
-             
+
             if ($field !== null && $identifierValue !== null) {
                 $queryParts[] = $this->makeFieldQuery(
                     $record,
