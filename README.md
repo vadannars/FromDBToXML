@@ -1,103 +1,240 @@
-# Try Out Development Containers: PHP
 
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-php)
+# Lånestatus API-klient
 
-A **development container** is a running container with a well-defined tool/runtime stack and its prerequisites. You can try out development containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
+Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på media genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
 
-This is a sample project that lets you try out either option in a few easy steps. We have a variety of other [vscode-remote-try-*](https://github.com/search?q=org%3Amicrosoft+vscode-remote-try-&type=Repositories) sample projects, too.
+**Typiskt användningsfall:**
+Ett system skickar en förfrågan med en identifierare och får tillbaka ett XML-svar som visar om mediet är tillgängligt, utlånat, reserverat osv.
 
-> **Note:** If you already have a Codespace or dev container, you can jump to the [Things to try](#things-to-try) section.
+Den typ av API som ansluts mot är den här: https://sandbox.iii.com/iii/sierra-api/swagger/index.html
 
-## Setting up the development container
+---
 
-### GitHub Codespaces
-Follow these steps to open this sample in a Codespace:
-1. Click the **Code** drop-down menu.
-2. Click on the **Codespaces** tab.
-3. Click **Create codespace on main**.
+## Funktioner
 
-For more info, check out the [GitHub documentation](https://docs.github.com/en/free-pro-team@latest/github/developing-online-with-codespaces/creating-a-codespace#creating-a-codespace).
+- Accepterar flera typer av identifierare (ISBN, Libris-ID, ISSN, ONR)
+- Kommunicerar säkert med Sierra API
+- Returnerar resultat i ett standardiserat XML-format
+- Konfigureras via miljövariabler eller `.env`-fil
+- Robust felhantering och loggning
+- Enkel att driftsätta lokalt eller i molnet
 
-### VS Code Dev Containers
-
-If you already have VS Code and Docker installed, you can click the badge above or [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-php) to get started. Clicking these links will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
-
-Follow these steps to open this sample in a container using the VS Code Dev Containers extension:
-
-1. If this is your first time using a development container, please ensure your system meets the pre-reqs (i.e. have Docker installed) in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
-
-2. To use this repository, you can either open the repository in an isolated Docker volume:
-
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Try a Sample...** command.
-    - Choose the "PHP" sample, wait for the container to start, and try things out!
-        > **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
-
-   Or open a locally cloned copy of the code:
-
-   - Clone this repository to your local filesystem.
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Open Folder in Container...** command.
-   - Select the cloned copy of this folder, wait for the container to start, and try things out!
-
-## Things to try
-
-Once you have this sample opened, you'll be able to work with it like you would locally.
-
-Some things to try:
-
-1. **Edit:**
-   - Open `index.php`
-   - Try adding some code and check out the language features.
-   - Make a spelling mistake and notice it is detected. The [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) extension was automatically installed because it is referenced in `.devcontainer/devcontainer.json`.
-   - Also notice that utilities like `Xdebug` and the [PHP Intelephense](https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client) extension are installed. Tools are installed in the `mcr.microsoft.com/devcontainers/php` image and Dev Container settings and metadata are automatically picked up from [image labels](https://containers.dev/implementors/reference/#labels).
+---
 
 
-1. **Terminal:** Press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>\`</kbd> and type `uname` and other Linux commands from the terminal window.
 
-1. **Run and Debug:**
-   - Open `index.php`
-   - Add a breakpoint (e.g. on line 4).
-   - Press <kbd>F5</kbd> to launch the app in the container.
-   - Once the breakpoint is hit, try hovering over variables, examining locals, and more.
+## Installation och kom igång
 
-1. **Running a server:**
-   - From the terminal, run `php -S 0.0.0.0:8000`
-   - Click "Open in Browser" in the notification that appears to access the web app on this new port.
-      - You can view an organized table of your forwarded ports in the 'Ports' view, which can be accessed with the command **Ports: Focus on Ports View**.
-      - Notice port 8000 in the 'Ports' view is labeled "Hello Remote World." In `devcontainer.json`, you can set `"portsAttributes"`, such as a label for your forwarded ports and the action to be taken when the port is autoforwarded.
-   - Look back at the terminal, and you should see the output from your site navigations.
-   - Edit the text on line 21 in `index.php` and refresh the page to see the changes immediately take effect.
+### 1. Klona projektet
+```bash
+git clone [DIN_REPOSITORY_URL]
+cd [PROJEKTNAMN]
+```
 
-1. **Attach debugger to the server:**
-   - Follow the previous steps to start up a PHP server and open a browser on port `8000`
-   - Press <kbd>F1</kbd> and select the **View: Show Debug** command.
-   - Pick "Listen for XDebug" from the dropdown.
-   - Press <kbd>F5</kbd> to attach the debugger.
-   - Add a breakpoint to `index.php` if you haven't already.
-   - Reload your browser window.
-   - Once the breakpoint is hit, try hovering over variables, examining locals, and more.
+### 2. Installera PHP och Composer
+- PHP 8.2 eller senare krävs.
+- Composer installeras enligt [officiell guide](https://getcomposer.org/download/).
 
-5. **Install Node.js using a Dev Container Feature:**
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Configure Container Features...** or **Codespaces: Configure Container Features...** command.
-   - Type "node" in the text box at the top.
-   - Check the check box next to "Node.js (via nvm) and yarn" (published by devcontainers) 
-   - Click OK
-   - Press <kbd>F1</kbd> and select the **Dev Containers: Rebuild Container** or **Codespaces: Rebuild Container** command so the modifications are picked up.
+### 3. Installera beroenden
+```bash
+composer install
+```
 
-## Contributing
+### 4. Sätt upp miljövariabler
+- **Rekommenderat:** Sätt miljövariabler direkt i serverns miljö (t.ex. via webbhotellspanel, systemd, Docker eller liknande).
+- **Alternativ:** Kopiera `.env.example` till `.env` och fyll i värdena. Se konfigurationsreferensen längre ned för fullständig lista.
+- Exempel på viktiga variabler:
+  ```
+  API_KEY=din_api_nyckel
+  API_SECRET=din_api_hemlighet
+  API_BASE_URL=https://ditt-bibliotek.se/iii/sierra-api/
+  ALLOWED_ORIGINS=https://libris.kb.se,https://din-domän.se
+  ACTIVE=true
+  LOG_LEVEL=info
+  LOG_DESTINATION=/sökväg/till/loggfil.log
+  ```
+Se `.env.example` för alla tillgängliga alternativ och beskrivningar.
+> **Obs!** I produktion kan du sätta dessa som miljövariabler direkt om din plattform stödjer det (rekommenderas för servertekniker).
 
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+### 5. Sätt rättigheter på loggkatalogen
+Se till att katalogen för loggar (`logs/` eller den du anger i `LOG_DESTINATION`) är skrivbar för webbserverns användare.
+Exempel (Linux):
+```bash
+mkdir -p logs
+chown www-data:www-data logs
+chmod 770 logs
+```
 
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+### 6. Konfigurera webbservern
+- Peka webbserverns dokumentrot mot projektets `public/`-katalog.
+- Exempel för Apache (se även `apache.conf` i projektet):
+  ```
+  DocumentRoot /sökväg/till/projektet/public
+  DirectoryIndex loanstatus.php index.php index.html
+  <Directory "/sökväg/till/projektet/public">
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Require all granted
+  </Directory>
+  ```
+- För Nginx eller annan server: se till att PHP-filer i `public/` kan exekveras.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+### 7. Starta tjänsten
+```bash
+php -S 0.0.0.0:8080 -t public
+```
+API:et är nu tillgängligt på [http://localhost:8080](http://localhost:8080).
 
-## License
+### 8. Testa installationen
+Besök API:et via webbläsare eller med `curl`:
+```bash
+curl 'https://din-server.se/loanstatus.php?isbn=9789177754657'
+```
+Kontrollera att du får ett XML-svar och att inga fel syns i loggarna.
 
-Copyright © Microsoft Corporation All rights reserved.<br />
-Licensed under the MIT License. See LICENSE in the project root for license information.
+### 9. Kör tester
+```bash
+./vendor/bin/phpunit
+```
+
+---
+
+## Så fungerar det
+
+1. **Förfrågan:**  
+	 En klient skickar en HTTP-förfrågan till `public/loanstatus.php` med en eller flera identifierare som URL-parametrar (t.ex. `?isbn=9781234567890`).
+
+2. **Bearbetning:**  
+	 - Kontrollern (`src/LoanStatusController.php`) validerar indata och styr arbetsflödet.
+	 - Sierra API-klienten (`src/SierraApiClient.php`) autentiserar och söker i Sierra API efter matchande exemplar.
+	 - XML-generatorn (`src/XmlGenerator.php`) formaterar resultatet till ett XML-svar.
+
+3. **Svar:**  
+	 Tjänsten returnerar en XML-fil med status för varje hittat exemplar.
+
+---
+
+
+## Konfigurationsreferens
+
+All konfiguration sker via miljövariabler eller en `.env`-fil. om det är oklart hur de ska anges så försök följa hur de har skrivits in i .env.example. Generellt kan sägas att värden som hanteras som text i logiken läggs in inom ciatationstecken ("textvärde") men andra typer av värden, som integers (siffror) eller booleans (true/false) läggs in utan. Koden ska vara någorlunda robust och kontrollera alla värden så det kan gå även om de läggs in fel, men försök att hålla formen till den som ligger i .env.example. Nedan ligger flera värden med andra typer av ciationstecken, men det är enbart för läsbarhet.
+
+### Grundläggande inställningar
+- `API_KEY` / `API_SECRET`: Inloggningsuppgifter för Sierra API. Biblioteket behöver skapa en specifik api-användare vars hemlighet och nyckel används för funktionen.
+- `API_BASE_URL`: Bas-URL till Sierra API (aktuell vid publicering: `"https://gotlib.goteborg.se/iii/sierra-api/v6"`)
+- `ALLOWED_ORIGINS`: Komma-separerad lista över tillåtna domäner för CORS. Det här är alltså domäner som tillåts ansluta mot tjänsten. I sak behövs bara `"https://libris.kb.se"` men fler kan läggas till för testning eller framtida ändringar.
+- `ACTIVE`: Sätt till `true` för att aktivera tjänsten, `false` för att inaktivera. Av/På för appen om ni vill stoppa den men inte stänga ner den på servern.
+- `LOG_LEVEL`: Loggningsnivå (se nedan)
+- `LOG_DESTINATION`: Sökväg till loggfil (eller lämna tomt för standard)
+
+### Loggning
+`LOG_LEVEL` styr hur detaljerad loggningen blir. Följande nivåer stöds (från mest till minst detaljerad):
+
+- `debug` – Allt loggas (mest detaljerad, för felsökning)
+- `info` – Viktig information om normal drift
+- `notice` – Notiser om ovanliga men ej kritiska händelser
+- `warning` – Varningar om potentiella problem
+- `error` – Fel som kräver åtgärd
+- `critical` – Kritiska fel som påverkar funktionalitet
+- `alert` – Allvarliga fel som kräver omedelbar åtgärd
+- `emergency` – Systemet är obrukbart
+
+Exempel:
+```
+LOG_LEVEL=info
+```
+
+Om `LOG_DESTINATION` inte är skrivbar skickas loggar automatiskt till `php://stderr` (standard i molnmiljöer).
+
+### API-endpoints
+- `TOKEN_ENDPOINT`:
+	Adressen för autentisering mot Sierras API. Finns som variabel om adressen skulle ändras i framtiden.
+- `QUERY_ENDPOINT`:
+	Adressen för att skicka JSON-querys för lista med bibliografiska poster.
+- `ITEMS_ENDPOINT`:
+	Adressen för hämtning av lista med exemplar från den tidigare funna bibliografiska posten.
+
+### Query-parametrar
+- `QUERY_OFFSET`:
+	Styr var i index sökningen börjar. obligatoriskt värde för att skicka querys. Ska sättas till `0`
+- `QUERY_LIMIT`:
+	Övre gräns för mängden bibliografiska poster som hämtas utifrån queryn. Obligatoriskt för att skicka querys.
+    Satt till 10 för att ha en gräns. Tanken är att en specifik bibliografisk post ska hittas. Sätt till `10`
+- `QUERY_LIBRIS_ID`:
+	Fälttagg och taggvärde för det fält som i Sierra representerar Libris.kb:s identifikationsnummer. Form: "[fälttagg]:[taggvärde]" (inklusive citationstecken). Exempel: `"tag:j"`
+- `QUERY_ISBN`:
+	Som QUERY_LIBRIS_ID men för ISBN. Exempel: `"tag:i"`
+- `QUERY_ISSN`:
+	Som de ovan men för ISSN. Exempel: `"marcTag:022"`
+- `QUERY_ONR`:
+	Som ovan men för ONR, Libris.kb:s äldre identifikationsnummer. Exempel: `"marcTag:035"`
+
+### Item fields
+- `ITEM_FIELDS`:
+	Kommaseparerad lista med de fält från exemplarsposten som ska hämtas. Istället för att hela posten laddas, så tas bara dessa fält. Går att utöka eller minska om behovet finns vid vidareutveckling.
+    Just nu används bara de som anges i exemplet, men det finns placeholders i koden för andra fält och fler taggar i XML-strukturen. För alla tillgängliga fält se https://sandbox.iii.com/iii/sierra-api/swagger/index.html#!/items/Get_an_item_by_record_ID_get_6
+    Exempel: `"location,callNumber,status"`
+Se `.env.example` för exempelvärden och vid tid för publicering aktuella endpoints och fält-taggar.
+
+> **Tips:** I produktion, sätt dessa som miljövariabler om möjligt för bättre säkerhet och flexibilitet.
+
+---
+
+## Exempel på anrop
+
+```
+GET /loanstatus.php?isbn=9789177754657
+```
+
+**Svar (XML):**
+```xml
+<status>
+	<channel>
+		<description>Exemplarstatus för böcker i Göteborgs biblioteks katalog</description>
+		<Item_information>
+			<Item>
+				<Item_No>1</Item_No>
+				<Location>Huvudbiblioteket</Location>
+				<Call_No>Hce.3</Call_No>
+				<Status>Utlånad</Status>
+				<Status_Date>2025-09-30</Status_Date>
+				<Status_Date_Description>ÅTER </Status_Date_Description>
+				<Loan_Policy></Loan_Policy>
+				<UniqueItemId></UniqueItemId>
+			</Item>
+			<!-- Fler exemplar... -->
+		</Item_information>
+	</channel>
+</status>
+```
+
+---
+
+## Felsökning
+
+- **Inget svar / 500-fel:**  
+	Kontrollera att alla nödvändiga miljövariabler är satta och giltiga. Se loggar för detaljer.
+
+- **CORS-fel:**  
+	Kontrollera att `ALLOWED_ORIGINS` innehåller domänen som gör anropet.
+
+- **Loggfilen skrivs inte:**  
+	Kontrollera att `LOG_DESTINATION` är skrivbar, eller lämna tomt för standardloggning.
+
+---
+
+## Utveckling & bidrag
+
+- Koden följer PSR-12 (se `phpcs.xml`)
+- Tester finns i katalogen `tests/` och använder PHPUnit
+- Loggning sker med Monolog
+- HTTP-anrop görs med Guzzle
+
+---
+
+## Säkerhet & uppförandekod
+
+- Se `SECURITY.md` för instruktioner om säkerhetsrapportering.
+- Projektet följer [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+
+---

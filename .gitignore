@@ -328,3 +328,14 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+/public/logs/
+/logs/
+*.log
+/vendor/
+composer.lock
+.env
+.phpunit.result.cache
+.php-cs-fixer.cache
+.vscode/
+.devcontainer/
