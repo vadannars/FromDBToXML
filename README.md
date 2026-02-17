@@ -1,7 +1,7 @@
 
 # Lånestatus API-klient
 
-Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på media genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
+Detta PHP-baserade webb-API fungerar som en brygga mellan Libris och ett biblioteks Sierra-API. Tjänsten gör det möjligt för användare (t.ex. Libris eller andra bibliotekssystem) att kontrollera status på media genom att ange identifierare som ISBN, Libris-ID, ISSN eller ONR. Svaret returneras som en XML-fil med status för varje hittat exemplar.
 
 **Typiskt användningsfall:**
 Ett system skickar en förfrågan med en identifierare och får tillbaka ett XML-svar som visar om mediet är tillgängligt, utlånat, reserverat osv.
@@ -117,7 +117,7 @@ Kontrollera att du får ett XML-svar och att inga fel syns i loggarna.
 
 ## Konfigurationsreferens
 
-All konfiguration sker via miljövariabler eller en `.env`-fil. om det är oklart hur de ska anges så försök följa hur de har skrivits in i .env.example. Generellt kan sägas att värden som hanteras som text i logiken läggs in inom ciatationstecken ("textvärde") men andra typer av värden, som integers (siffror) eller booleans (true/false) läggs in utan. Koden ska vara någorlunda robust och kontrollera alla värden så det kan gå även om de läggs in fel, men försök att hålla formen till den som ligger i .env.example. Nedan ligger flera värden med andra typer av ciationstecken, men det är enbart för läsbarhet.
+All konfiguration sker via miljövariabler eller en `.env`-fil. om det är oklart hur de ska anges så försök följa hur de har skrivits in i .env.example. Generellt kan sägas att värden som hanteras som text i logiken läggs in inom citationstecken ("textvärde") men andra typer av värden, som integers (siffror) eller booleans (true/false) läggs in utan. Koden ska vara någorlunda robust och kontrollera alla värden så det kan gå även om de läggs in fel, men försök att hålla formen till den som ligger i .env.example. Nedan ligger flera värden med andra typer av ciationstecken, men det är enbart för läsbarhet.
 
 ### Grundläggande inställningar
 - `API_KEY` / `API_SECRET`: Inloggningsuppgifter för Sierra API. Biblioteket behöver skapa en specifik api-användare vars hemlighet och nyckel används för funktionen.
