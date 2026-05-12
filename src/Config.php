@@ -201,7 +201,10 @@ class Config implements ConfigInterface
     public function getLogDestination(): string
     {
         $value = $this->get('log_destination');
-        return is_string($value) ? $value : __DIR__ . '/../logs/app.log';
+        if (is_string($value) && !empty(trim($value))) {
+            return $value;
+        }
+        return __DIR__ . '/../logs/app.log';
     }
 
     public function getActive(): bool
