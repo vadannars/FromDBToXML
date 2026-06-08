@@ -97,6 +97,27 @@ Kontrollera att du får ett XML-svar och att inga fel syns i loggarna.
 ./vendor/bin/phpunit
 ```
 
+### 10. Validera före deployment
+Innan du laddar upp koden till din server (via FTP eller annan metod), kör följande validering lokalt för att fånga eventuella fel:
+
+```bash
+# Kör statisk analys med PHPStan för att hitta typ- och logikfel
+./vendor/bin/phpstan analyse src public --level max
+
+# Kör automatiserade tester
+./vendor/bin/phpunit
+
+# Kör kodstilskontroll (valfritt, men rekommenderat)
+./vendor/bin/phpcs --standard=PSR12 src
+```
+
+**Checklista före upload:**
+- ☐ `phpstan` rapporterar inga fel
+- ☐ Alla `phpunit`-tester passar
+- ☐ `.env` är konfigurerad med rätt värden för din miljö
+- ☐ Loggkatalog finns och är skrivbar
+- ☐ Redo för upload via FTP
+
 ---
 
 ## Så fungerar det

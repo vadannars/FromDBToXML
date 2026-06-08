@@ -339,3 +339,4 @@ composer.lock
 .php-cs-fixer.cache
 .vscode/
 .devcontainer/
+*.pem
